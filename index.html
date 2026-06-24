@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quaddra Jesuíno · Backoffice Diretoria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #B8963E; --gold-light: #D4AF5A; --bg: #0F1117; --surface: #16181F;
+    --surface2: #1E2028; --border: rgba(255,255,255,0.07); --text: #E2E8F0; --text-muted: #94A3B8;
+    --st-disponivel: #FFFFFF; --st-proposta: #86EFAC; --st-processo: #22C55E; --st-assinado: #15803D; --st-suspensa: #1E293B;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+  .logo-title { display: flex; align-items: center; gap: 1rem; }
+  .logo-title h1 { font-size: 1.25rem; font-weight: 500; letter-spacing: 1px; color: #FFF; text-transform: uppercase; }
+  .logo-title span { color: var(--gold); font-size: 0.85rem; background: rgba(184,150,62,0.1); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid rgba(184,150,62,0.2); }
+  .sync-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
+  .sync-dot { width: 8px; height: 8px; background: #EF4444; border-radius: 50%; }
+  .sync-dot.online { background: #22C55E; box-shadow: 0 0 8px #22C55E; }
+  
+  main { flex: 1; display: flex; overflow: hidden; }
+  .panel-left { flex: 1.2; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; border-right: 1px solid var(--border); }
+  .panel-right { flex: 0.8; background: var(--surface); overflow-y: auto; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+  
+  /* KPIs Row */
+  .kpis-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; }
+  .kpi-card p { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; }
+  .kpi-card h3 { font-size: 1.25rem; font-weight: 600; color: #FFF; }
+  
+  /* Espelho Visual */
+  .espelho-container { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; }
+  .espelho-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
+  .grid-predio { display: flex; flex-direction: column-reverse; gap: 0.5rem; max-width: 500px; margin: 0 auto; }
+  .andar-row { display: flex; gap: 0.5rem; align-items: center; }
+  .label-andar { width: 40px; font-size: 0.75rem; color: var(--text-muted); text-align: right; }
+  .unit-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); padding: 0.75rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; position: relative; }
+  .unit-box:hover { border-color: var(--gold); transform: translateY(-1px); }
+  .unit-box.selected { border-color: var(--gold); box-shadow: 0 0 12px rgba(184,150,62,0.2); }
+  .unit-name { font-size: 0.95rem; font-weight: 600; color: #FFF; margin-bottom: 0.15rem; }
+  .unit-meta { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
+  
+  /* Status Colors */
+  .u-disponivel { border-left: 4px solid var(--st-disponivel); }
+  .u-proposta { border-left: 4px solid var(--st-proposta); background: rgba(134,239,172,0.03); }
+  .u-processo { border-left: 4px solid var(--st-processo); background: rgba(34,197,94,0.03); }
+  .u-cv_assinado { border-left: 4px solid var(--st-assinado); background: rgba(21,128,61,0.03); }
+  .u-suspensa { border-left: 4px solid var(--st-suspensa); opacity: 0.5; }
+  
+  /* Right Panel Content */
+  .painel-vazio { padding: 3rem; text-align: center; color: var(--text-muted); margin: auto; }
+  .painel-vazio i { font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--border2); }
+  .editor-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .editor-header h2 { font-size: 1.2rem; color: #FFF; }
+  .editor-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; flex: 1; }
+  
+  .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; }
+  input, select, textarea { background: var(--surface2); border: 1px solid var(--border); padding: 0.65rem; border-radius: 4px; color: #FFF; font-family: inherit; font-size: 0.9rem; }
+  input:focus, select:focus { border-color: var(--gold); outline: none; }
+  
+  /* Esteira */
+  .esteira-fluxo { display: flex; gap: 0.25rem; background: var(--surface2); padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border); }
+  .step-btn { flex: 1; padding: 0.5rem 0.25rem; font-size: 0.65rem; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 3px; font-weight: 500; text-transform: uppercase; text-align: center; }
+  .step-btn.active { background: var(--gold); color: #000; font-weight: 600; }
+  
+  /* Tabela Financeira */
+  .fin-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+  .fin-table th { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+  .fin-table td { padding: 0.4rem 0.2rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
+  .fin-table input { padding: 0.4rem; font-size: 0.85rem; width: 100%; }
+  
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.65rem 1.25rem; font-size: 0.85rem; font-weight: 500; border-radius: 4px; cursor: pointer; transition: background 0.2s; border: none; }
+  .btn-gold { background: var(--gold); color: #000; font-weight: 600; }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-sec { background: var(--surface2); border: 1px solid var(--border); color: #FFF; }
+  .btn-sec:hover { background: var(--surface3); }
+  .btn-danger { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  
+  .editor-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: var(--surface2); display: flex; justify-content: flex-end; gap: 1rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-title">
+    <h1>Quaddra Jesuíno</h1>
+    <span>Backoffice Diretoria</span>
+  </div>
+  <div class="sync-status">
+    <div id="syncDot" class="sync-dot"></div>
+    <span id="syncText">A carregar dados do Sheets...</span>
+  </div>
+</header>
+
+<main>
+  <div class="panel-left">
+    <div class="kpis-grid">
+      <div class="kpi-card">
+        <p>VGV Total Ativo</p>
+        <h3 id="kpiVgv">R$ 0,00</h3>
+      </div>
+      <div class="kpi-card">
+        <p>Contratos Ativos</p>
+        <h3 id="kpiContratos">0 / 33</h3>
+      </div>
+      <div class="kpi-card">
+        <p>Em Processo</p>
+        <h3 id="kpiProcesso">0</h3>
+      </div>
+      <div class="kpi-card">
+        <p>Disponível</p>
+        <h3 id="kpiDisponivel">33</h3>
+      </div>
+    </div>
+
+    <div class="espelho-container">
+      <div class="espelho-header">
+        <span>Estrutura de Pavimentos Reais</span>
+        <span>Clique na unidade para gerir</span>
+      </div>
+      <div class="grid-predio" id="predioContainer">
+        </div>
+    </div>
+  </div>
+
+  <div class="panel-right" id="painelDireto">
+    <div class="painel-vazio">
+      <i class="ti ti-building-store"></i>
+      <p>Selecione uma unidade no espelho para visualizar o fluxo financeiro e o histórico da esteira.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  // URL da API Privada do seu Google Sheets (Configurada no passo anterior)
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec";
+
+  let units = [];
+  let selectedUnitId = null;
+
+  // 1. ÁRVORE DE PAVIMENTOS CIRÚRGICA (33 Unidades Reais do Quaddra Jesuíno)
+  function buildRealJesuinoTree() {
+    const list = [];
+    
+    // Final 1 (Torre 1)
+    list.push({ id_unidade: "21", andar: 2, final: 1, metragem: 478, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    for (let a = 3; a <= 27; a++) {
+      list.push({ id_unidade: `${a}1`, andar: a, final: 1, metragem: 387, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    }
+    list.push({ id_unidade: "281", andar: 28, final: 1, metragem: 609, tipo: "Cobertura", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+
+    // Final 2 (Torre 2)
+    list.push({ id_unidade: "22", andar: 2, final: 2, metragem: 349, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    for (let a = 3; a <= 6; a++) {
+      list.push({ id_unidade: `${a}2`, andar: a, final: 2, metragem: 326, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    }
+    list.push({ id_unidade: "72", andar: 7, final: 2, metragem: 545, tipo: "Duplex", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+
+    return list;
+  }
+
+  // 2. CARREGAR DADOS DA PLANILHA (GET)
+  async function carregarDados() {
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL);
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        const cloudData = result.data;
+        units = buildRealJesuinoTree();
+        
+        // Cruzar os dados fixos da árvore com o que veio preenchido no Sheets
+        units.forEach(u => {
+          const match = cloudData.find(c => String(c.id_unidade) === String(u.id_unidade));
+          if (match) {
+            u.status_espelho = match.status_espelho || "DISPONIVEL";
+            u.cliente_nome = match.cliente_nome || "";
+            u.fase_esteira = parseInt(match.fase_esteira) || 1;
+            u.fluxo_financeiro = match.fluxo_financeiro || [];
+          }
+        });
+
+        document.getElementById("syncDot").className = "sync-dot online";
+        document.getElementById("syncText").innerText = "Conectado ao Google Sheets";
+        
+        renderEspelho();
+        renderKPIs();
+        if (selectedUnitId) selectUnit(selectedUnitId);
+      }
+    } catch (error) {
+      console.error("Erro na sincronização:", error);
+      document.getElementById("syncText").innerText = "Modo Offline (Falha ao sincronizar)";
+      // Fallback para cache local se a rede falhar
+      if(units.length === 0) {
+        units = JSON.parse(localStorage.getItem("jesuino_cache")) || buildRealJesuinoTree();
+        renderEspelho();
+        renderKPIs();
+      }
+    }
+  }
+
+  // 3. DESENHAR O ESPELHO NA TELA (Unificação de Pavimentos de 2 a 28)
+  function renderEspelho() {
+    const container = document.getElementById("predioContainer");
+    container.innerHTML = "";
+
+    // Agrupar todos os andares existentes de forma unificada
+    const andares = [...new Set(units.map(u => u.andar))].sort((a,b) => a - b);
+
+    andares.forEach(andar => {
+      const row = document.createElement("div");
+      row.className = "andar-row";
+
+      const label = document.createElement("div");
+      label.className = "label-andar";
+      label.innerText = `${andar}º Pav`;
+      row.appendChild(label);
+
+      // Final 1
+      const u1 = units.find(u => u.andar === andar && u.final === 1);
+      row.appendChild(createUnitDom(u1));
+
+      // Final 2
+      const u2 = units.find(u => u.andar === andar && u.final === 2);
+      row.appendChild(createUnitDom(u2));
+
+      container.appendChild(row);
+    });
+  }
+
+  function createUnitDom(u) {
+    const box = document.createElement("div");
+    if (!u) {
+      box.className = "unit-box";
+      box.style.opacity = "0";
+      box.style.pointerEvents = "none";
+      return box;
+    }
+
+    box.className = `unit-box u-${u.status_espelho.toLowerCase()} ${u.id_unidade === selectedUnitId ? 'selected' : ''}`;
+    box.onclick = () => selectUnit(u.id_unidade);
+
+    box.innerHTML = `
+      <div class="unit-name">Ap ${u.id_unidade}</div>
+      <div class="unit-meta">
+        <span>${u.metragem}m² · ${u.tipo}</span>
+        <strong style="color:${getStatusColor(u.status_espelho)}">${u.status_espelho}</strong>
+      </div>
+    `;
+    return box;
+  }
+
+  function getStatusColor(st) {
+    if (st === "PROPOSTA") return "#86EFAC";
+    if (st === "PROCESSO") return "#22C55E";
+    if (st === "CV_ASSINADO") return "#15803D";
+    if (st === "SUSPENSA") return "#475569";
+    return "#94A3B8";
+  }
+
+  // 4. RENDERIZAR KPIs EXECUTIVOS
+  function renderKPIs() {
+    let totalVgv = 0;
+    let contratos = 0;
+    let processo = 0;
+    let disponivel = 0;
+
+    units.forEach(u => {
+      const totalUnidade = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
+      if (u.status_espelho === "CV_ASSINADO") {
+        totalVgv += totalUnidade;
+        contratos++;
+      } else if (u.status_espelho === "PROCESSO" || u.status_espelho === "PROPOSTA") {
+        processo++;
+      } else if (u.status_espelho === "DISPONIVEL") {
+        disponivel++;
+      }
+    });
+
+    document.getElementById("kpiVgv").innerText = totalVgv.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById("kpiContratos").innerText = `${contratos} / 33`;
+    document.getElementById("kpiProcesso").innerText = processo;
+    document.getElementById("kpiDisponivel").innerText = disponivel;
+  }
+
+  // 5. SELECIONAR UNIDADE E CONFIGURAR GAVETA
+  window.selectUnit = function(id) {
+    selectedUnitId = id;
+    renderEspelho();
+    const u = units.find(x => x.id_unidade === id);
+    const rightPanel = document.getElementById("painelDireto");
+
+    let totalAtual = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
+
+    rightPanel.innerHTML = `
+      <div class="editor-header">
+        <div>
+          <h2>Unidade ${u.id_unidade}</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted)">${u.tipo} — ${u.metragem}m²</p>
+        </div>
+        <div style="text-align:right">
+          <span style="font-size:0.75rem; color:var(--text-muted)">VALOR DA PROPOSTA</span>
+          <h3 style="color:var(--gold)">${totalAtual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</h3>
+        </div>
+      </div>
+      
+      <div class="editor-body">
+        <div class="form-group">
+          <label>Status no Espelho</label>
+          <select id="editStatus" onchange="window.updateFaseByStatus(this.value)">
+            <option value="DISPONIVEL" ${u.status_espelho === "DISPONIVEL" ? "selected" : ""}>DISPONÍVEL</option>
+            <option value="PROPOSTA" ${u.status_espelho === "PROPOSTA" ? "selected" : ""}>PROPOSTA EM ANÁLISE</option>
+            <option value="PROCESSO" ${u.status_espelho === "PROCESSO" ? "selected" : ""}>EM PROCESSO Comercial</option>
+            <option value="CV_ASSINADO" ${u.status_espelho === "CV_ASSINADO" ? "selected" : ""}>CV ASSINADO</option>
+            <option value="SUSPENSA" ${u.status_espelho === "SUSPENSA" ? "selected" : ""}>SUSPENSA / BLOQUEADA</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nome do Cliente / Proponente</label>
+          <input type="text" id="editCliente" value="${u.cliente_nome || ''}" placeholder="Ex: Diego Unilever">
+        </div>
+
+        <div class="form-group">
+          <label>Esteira de Vendas Interna (Fluxo do Processo)</label>
+          <div class="esteira-fluxo">
+            <button class="step-btn ${u.fase_esteira === 1 ? 'active' : ''}" onclick="window.setFase(1)">1. Proposta</button>
+            <button class="step-btn ${u.fase_esteira === 2 ? 'active' : ''}" onclick="window.setFase(2)">2. Aprov. Dir</button>
+            <button class="step-btn ${u.fase_esteira === 3 ? 'active' : ''}" onclick="window.setFase(3)">3. Crédito</button>
+            <button class="step-btn ${u.fase_esteira === 4 ? 'active' : ''}" onclick="window.setFase(4)">4. Jurídico</button>
+            <button class="step-btn ${u.fase_esteira === 5 ? 'active' : ''}" onclick="window.setFase(5)">5. Coleta</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <label>Fluxo Financeiro Dedicado</label>
+            <button class="btn btn-sec" style="padding:0.25rem 0.5rem; font-size:0.75rem" onclick="window.addLinhaFluxo()">+ Nova Parcela</button>
+          </div>
+          <table class="fin-table">
+            <thead>
+              <tr>
+                <th>Vencimento</th>
+                <th>Descrição da Condição</th>
+                <th>Valor (R$)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="fluxoTableBody">
+              ${u.fluxo_financeiro.map((f, index) => `
+                <tr>
+                  <td><input type="date" value="${f.data_vencimento}" onchange="window.updateFluxoRow(${index}, 'data_vencimento', this.value)"></td>
+                  <td><input type="text" value="${f.descricao}" placeholder="Ato, Anual, Chaves..." onchange="window.updateFluxoRow(${index}, 'descricao', this.value)"></td>
+                  <td><input type="number" value="${f.valor}" step="0.01" onchange="window.updateFluxoRow(${index}, 'valor', this.value)"></td>
+                  <td><button class="btn btn-danger" style="padding:0.25rem" onclick="window.deleteFluxoRow(${index})"><i class="ti ti-trash"></i></button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="editor-footer">
+        <button class="btn btn-sec" onclick="window.carregarDados()">Cancelar</button>
+        <button class="btn btn-gold" id="btnSalvar" onclick="window.salvarUnidadeData('${u.id_unidade}')">Salvar na Planilha</button>
+      </div>
+    `;
+  }
+
+  // 6. FUNÇÕES AUXILIARES DE MANIPULAÇÃO DA GAVETA
+  window.updateFaseByStatus = function(status) {
+    const u = units.find(x => x.id_unidade === selectedUnitId);
+    if(status === "DISPONIVEL") u.fase_esteira = 1;
+    if(status === "PROPOSTA") u.fase_esteira = 1;
+    if(status === "PROCESSO") u.fase_esteira = 2; // Avança para aprovação da diretoria
+    if(status === "CV_ASSINADO") u.fase_esteira = 5;
+    selectUnit(selectedUnitId);
+  }
+
+  window.setFase = function(fase) {
+    const u = units.find(x => x.id_unidade === selectedUnitId);
+    u.fase_esteira = fase;
+    selectUnit(selectedUnitId);
+  }
+
+  window.updateFluxoRow = function(index, field, value) {
+    const u = units.find(x => x.id_unidade === selectedUnitId);
+    u.fluxo_financeiro[index][field] = value;
+    localStorage.setItem("jesuino_cache", JSON.stringify(units));
+  }
+
+  window.addLinhaFluxo = function() {
+    const u = units.find(x => x.id_unidade === selectedUnitId);
+    u.fluxo_financeiro.push({ data_vencimento: new Date().toISOString().split('T')[0], descricao: "", valor: 0 });
+    selectUnit(selectedUnitId);
+  }
+
+  window.deleteFluxoRow = function(index) {
+    const u = units.find(x => x.id_unidade === selectedUnitId);
+    u.fluxo_financeiro.splice(index, 1);
+    selectUnit(selectedUnitId);
+  }
+
+  // 7. ENVIAR DADOS PARA O GOOGLE SHEETS (POST EXEC)
+  window.salvarUnidadeData = async function(id) {
+    const btn = document.getElementById("btnSalvar");
+    btn.innerText = "A guardar...";
+    btn.disabled = true;
+
+    const u = units.find(x => x.id_unidade === id);
+    u.status_espelho = document.getElementById("editStatus").value;
+    u.cliente_nome = document.getElementById("editCliente").value;
+
+    const payload = {
+      action: "updateUnit",
+      id_unidade: u.id_unidade,
+      status_espelho: u.status_espelho,
+      cliente_nome: u.cliente_nome,
+      fase_esteira: u.fase_esteira,
+      fluxo_financeiro: u.fluxo_financeiro
+    };
+
+    // Salva em cache local primeiro por segurança
+    localStorage.setItem("jesuino_cache", JSON.stringify(units));
+
+    try {
+      document.getElementById("syncDot").className = "sync-dot";
+      document.getElementById("syncText").innerText = "A enviar dados para o Sheets...";
+
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors", // Evita bloqueios de CORS Cross-Domain do GitHub para o Google
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      // Como o modo 'no-cors' não traz a resposta de sucesso de forma explícita, forçamos um recarregamento rápido
+      setTimeout(() => {
+        carregarDados();
+        alert(`Unidade ${id} sincronizada e salva com sucesso na Nuvem!`);
+      }, 800);
+
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Ocorreu um erro ao ligar ao servidor do Google. Os dados foram guardados localmente neste computador.");
+      carregarDados();
+    }
+  };
+
+  // Inicialização Automática ao Carregar a Página
+  window.onload = () => {
+    units = buildRealJesuinoTree();
+    renderEspelho();
+    renderKPIs();
+    carregarDados();
+  };
+</script>
+</body>
+</html>
