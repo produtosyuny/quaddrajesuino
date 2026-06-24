@@ -9,6 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
 
+<!-- Bibliotecas para Exportar Imagem e Excel sem precisar de backend -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -23,7 +27,6 @@
   .logo-title h1 { font-size: 1.25rem; font-weight: 500; letter-spacing: 1px; color: #FFF; text-transform: uppercase; }
   .logo-title span { color: var(--gold); font-size: 0.85rem; background: rgba(184,150,62,0.1); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid rgba(184,150,62,0.2); }
   
-  /* Menu de Abas Superior */
   .nav-tabs { display: flex; gap: 1rem; margin-left: 2rem; }
   .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
   .tab-btn:hover { color: #FFF; background: rgba(255,255,255,0.03); }
@@ -33,34 +36,32 @@
   .sync-dot { width: 8px; height: 8px; background: #EF4444; border-radius: 50%; }
   .sync-dot.online { background: #22C55E; box-shadow: 0 0 8px #22C55E; }
   
-  /* Conteúdos das Abas */
   .tab-content { flex: 1; display: none; overflow: hidden; }
   .tab-content.active { display: flex; }
   
-  /* Estrutura Aba Espelho */
   .panel-left { flex: 1.2; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; border-right: 1px solid var(--border); }
   .panel-right { flex: 0.8; background: var(--surface); overflow-y: auto; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
   
-  /* Estrutura Aba Financeiro */
-  .panel-financeiro { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem; }
-  .filter-bar { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; display: flex; align-items: center; gap: 2rem; }
+  .panel-financeiro { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
+  .filter-bar { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .filter-options { display: flex; align-items: center; gap: 2rem; }
   .filter-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--gold); letter-spacing: 0.5px; }
   .checkbox-group { display: flex; gap: 1.5rem; align-items: center; }
   .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; color: #FFF; }
   .checkbox-label input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; }
+  .action-group { display: flex; gap: 0.75rem; }
 
   .table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; padding: 1rem; }
   
-  /* KPIs Gerais */
   .kpis-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
   .kpi-card { background: var(--surface); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; display: flex; flex-direction: column; justify-content: space-between; min-height: 90px; }
   .kpi-card p { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; font-weight: 500; letter-spacing: 0.5px; }
   .kpi-card h3 { font-size: 1.15rem; font-weight: 600; color: #FFF; margin-bottom: 0.15rem; }
   .kpi-sub { font-size: 0.75rem; color: var(--gold); font-weight: 500; display: flex; justify-content: space-between; }
   
-  .espelho-container { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; }
-  .espelho-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
-  .grid-predio { display: flex; flex-direction: column-reverse; gap: 0.5rem; max-width: 500px; margin: 0 auto; }
+  .espelho-container { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; position: relative; }
+  .espelho-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
+  .grid-predio { display: flex; flex-direction: column-reverse; gap: 0.5rem; max-width: 500px; margin: 0 auto; padding: 1rem; background: var(--surface); }
   .andar-row { display: flex; gap: 0.5rem; align-items: center; }
   .label-andar { width: 40px; font-size: 0.75rem; color: var(--text-muted); text-align: right; }
   .unit-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); padding: 0.75rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; position: relative; }
@@ -95,6 +96,9 @@
   .fin-table td { padding: 0.65rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; }
   .fin-table input { padding: 0.4rem; font-size: 0.85rem; width: 100%; }
   
+  /* Classe auxiliar para esconder as colunas das unidades dinamicamente */
+  .hide-unit-col { display: none !important; }
+  
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.65rem 1.25rem; font-size: 0.85rem; font-weight: 500; border-radius: 4px; cursor: pointer; transition: background 0.2s; border: none; }
   .btn-gold { background: var(--gold); color: #000; font-weight: 600; }
   .btn-gold:hover { background: var(--gold-light); }
@@ -111,7 +115,6 @@
     <h1>Quaddra Jesuíno</h1>
     <span>Backoffice Diretoria</span>
     
-    <!-- Menu de Navegação entre Telas -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('espelho')"><i class="ti ti-layout-dashboard"></i>Espelho de Vendas</button>
       <button class="tab-btn" onclick="switchTab('financeiro')"><i class="ti ti-coin-bitcoin"></i>Controle Financeiro</button>
@@ -152,9 +155,11 @@
     <div class="espelho-container">
       <div class="espelho-header">
         <span>Estrutura de Pavimentos Reais</span>
-        <span>Clique na unidade para gerir</span>
+        <button class="btn btn-sec" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="exportarEspelhoImagem()"><i class="ti ti-camera"></i> Salvar como Imagem</button>
       </div>
-      <div class="grid-predio" id="predioContainer"></div>
+      <div id="captureArea">
+        <div class="grid-predio" id="predioContainer"></div>
+      </div>
     </div>
   </div>
 
@@ -166,38 +171,39 @@
   </div>
 </div>
 
-<!-- ABA 2: CONTROLE FINANCEIRO (MÊS A MÊS COMPILADO) -->
+<!-- ABA 2: CONTROLE FINANCEIRO -->
 <div id="tab-financeiro" class="tab-content">
   <div class="panel-financeiro">
     
-    <!-- Filtros de Seleção (Ticar Status) -->
     <div class="filter-bar">
-      <div class="filter-title">Filtrar fluxo projetado por status:</div>
-      <div class="checkbox-group">
-        <label class="checkbox-label">
-          <input type="checkbox" id="chkAssinado" checked onchange="renderFinanceiro()"> 
-          <span style="color: #22C55E;">●</span> Contrato Assinado (CV)
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" id="chkProcesso" checked onchange="renderFinanceiro()"> 
-          <span style="color: #EAB308;">●</span> Em Processo Comercial
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" id="chkProposta" checked onchange="renderFinanceiro()"> 
-          <span style="color: #60A5FA;">●</span> Proposta em Análise
-        </label>
+      <div class="filter-options">
+        <div class="filter-title">Status:</div>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkAssinado" checked onchange="renderFinanceiro()"> 
+            <span style="color: #15803D;">●</span> Assinado
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkProcesso" checked onchange="renderFinanceiro()"> 
+            <span style="color: #22C55E;">●</span> Processo
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkProposta" checked onchange="renderFinanceiro()"> 
+            <span style="color: #86EFAC;">●</span> Proposta
+          </label>
+        </div>
+      </div>
+      
+      <div class="action-group">
+        <button class="btn btn-sec" id="btnToggleUnidades" onclick="toggleVisibilidadeUnidades()"><i class="ti ti-eye-off"></i> Esconder Unidades</button>
+        <button class="btn btn-gold" onclick="exportarFluxoExcel()"><i class="ti ti-download"></i> Exportar Excel</button>
       </div>
     </div>
 
-    <!-- Tabela Dinâmica Semelhante às Imagens do Usuário -->
     <div class="table-container">
       <table class="fin-table" id="tabelaFluxoCompilado">
-        <thead>
-          <!-- Gerado dinamicamente via JS com as unidades na horizontal -->
-        </thead>
-        <tbody id="corpoFluxoCompilado">
-          <!-- Linhas de Meses geradas dinamicamente -->
-        </tbody>
+        <thead></thead>
+        <tbody id="corpoFluxoCompilado"></tbody>
       </table>
     </div>
 
@@ -209,6 +215,7 @@
 
   let units = [];
   let selectedUnitId = null;
+  let esconderUnidades = false; // Controle global da visão enxuta da tabela
 
   function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -220,7 +227,7 @@
     } else {
       document.getElementById('tab-financeiro').classList.add('active');
       event.currentTarget.classList.add('active');
-      renderFinanceiro(); // Monta a tabela cruzada toda vez que abre a aba
+      renderFinanceiro();
     }
   }
 
@@ -296,13 +303,23 @@
     }
   }
 
-  // --- MONTAGEM DA NOVA ABA DE CONTROLE FINANCEIRO COMPILADO ---
+  // Alterna entre ver as colunas das unidades ou recolher tudo deixando só o consolidado
+  function toggleVisibilidadeUnidades() {
+    esconderUnidades = !esconderUnidades;
+    const btn = document.getElementById("btnToggleUnidades");
+    if(esconderUnidades) {
+      btn.innerHTML = `<i class="ti ti-eye"></i> Mostrar Unidades`;
+    } else {
+      btn.innerHTML = `<i class="ti ti-eye-off"></i> Esconder Unidades`;
+    }
+    renderFinanceiro();
+  }
+
   function renderFinanceiro() {
     const chkAssinado = document.getElementById("chkAssinado").checked;
     const chkProcesso = document.getElementById("chkProcesso").checked;
     const chkProposta = document.getElementById("chkProposta").checked;
 
-    // 1. Filtrar as unidades permitidas com base nos checkboxes ticados
     const unidadesFiltradas = units.filter(u => {
       if (u.status_espelho === "CV_ASSINADO" && chkAssinado) return true;
       if (u.status_espelho === "PROCESSO" && chkProcesso) return true;
@@ -310,7 +327,6 @@
       return false;
     });
 
-    // 2. Descobrir todos os meses/anos que possuem algum valor ativo para listar nas linhas
     let todosMeses = [];
     unidadesFiltradas.forEach(u => {
       u.fluxo_financeiro.forEach(f => {
@@ -320,21 +336,22 @@
       });
     });
 
-    // Ordenação básica dos meses (MM/AAAA)
     todosMeses.sort((a, b) => {
       let pA = a.split("/"), pB = b.split("/");
       return new Date(pA[1], pA[0]-1) - new Date(pB[1], pB[0]-1);
     });
 
     const tabela = document.getElementById("tabelaFluxoCompilado");
-    tabela.innerHTML = ""; // Reseta tabela
+    tabela.innerHTML = "";
 
-    // 3. Criar Cabeçalho Horizontal (Meses/Ano | Unidades com Fluxo | Total Geral | Acumulado)
     let thead = document.createElement("thead");
     let headerRow = `<tr><th style="min-width:120px;">Mês/Ano</th>`;
     
+    // Injeta estilo oculto caso o botão esteja acionado
+    let displayStyle = esconderUnidades ? 'class="hide-unit-col"' : '';
+
     unidadesFiltradas.forEach(u => {
-      headerRow += `<th style="font-size:0.75rem; text-align:right;">Ap ${u.id_unidade}<br><span style="color:var(--text-muted); font-weight:normal;">${u.cliente_nome || 'S/N'}</span></th>`;
+      headerRow += `<th ${displayStyle} style="font-size:0.75rem; text-align:right;">Ap ${u.id_unidade}<br><span style="color:var(--text-muted); font-weight:normal;">${u.cliente_nome || 'S/N'}</span></th>`;
     });
     
     headerRow += `<th style="text-align:right; color:var(--gold);">Total Geral</th>`;
@@ -342,7 +359,6 @@
     thead.innerHTML = headerRow;
     tabela.appendChild(thead);
 
-    // 4. Montar as linhas mês a mês somando as entradas (Igual à imagem 2)
     let tbody = document.createElement("tbody");
     let acumuladorVGV = 0;
 
@@ -350,22 +366,20 @@
       let rowHTML = `<tr><td style="font-weight:600; color:#FFF;">${mes}</td>`;
       let totalDoMes = 0;
 
-      // Percorre cada coluna de unidade injetando o valor correspondente daquele mês específico
       unidadesFiltradas.forEach(u => {
         let parcelaDoMes = u.fluxo_financeiro.filter(f => f.data_vencimento === mes);
         let somaParcela = parcelaDoMes.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
         
         if (somaParcela > 0) {
           totalDoMes += somaParcela;
-          rowHTML += `<td style="text-align:right; color:var(--text); font-size:0.85rem;">${somaParcela.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>`;
+          rowHTML += `<td ${displayStyle} style="text-align:right; color:var(--text); font-size:0.85rem;">${somaParcela.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>`;
         } else {
-          rowHTML += `<td style="text-align:right; color:var(--text-muted); opacity:0.3;">-</td>`;
+          rowHTML += `<td ${displayStyle} style="text-align:right; color:var(--text-muted); opacity:0.3;">-</td>`;
         }
       });
 
       acumuladorVGV += totalDoMes;
 
-      // Injeta as duas colunas finais da linha (Total do Mês e o Saldo Acumulado Histórico)
       rowHTML += `<td style="text-align:right; font-weight:600; color:var(--gold); background:rgba(184,150,62,0.02);">${totalDoMes.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td>`;
       rowHTML += `<td style="text-align:right; font-weight:600; color:#22C55E; background:rgba(34,197,94,0.02);">${acumuladorVGV.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td></tr>`;
       
@@ -373,10 +387,37 @@
     });
 
     if(todosMeses.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:3rem; color:var(--text-muted);">Nenhum fluxo financeiro encontrado para os status marcados.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:3rem; color:var(--text-muted);">Nenhum fluxo financeiro encontrado.</td></tr>`;
     }
 
     tabela.appendChild(tbody);
+  }
+
+  // EXPORTAR FLUXO COMPLETO PARA EXCEL
+  function exportarFluxoExcel() {
+    const table = document.getElementById("tabelaFluxoCompilado");
+    
+    // Clonamos temporariamente para garantir que as colunas ocultas apareçam no Excel se o usuário baixá-lo
+    let tempTable = table.cloneNode(true);
+    tempTable.querySelectorAll('.hide-unit-col').forEach(el => el.classList.remove('hide-unit-col'));
+
+    const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Fluxo Mensal" });
+    XLSX.writeFile(wb, `Fluxo_Financeiro_Quaddra_Jesuino.xlsx`);
+  }
+
+  // EXPORTAR ESPELHO COMO IMAGEM (PNG)
+  function exportarEspelhoImagem() {
+    const area = document.getElementById("captureArea");
+    html2canvas(area, {
+      backgroundColor: "#16181F",
+      logging: false,
+      scale: 2
+    }).then(canvas => {
+      let link = document.createElement('a');
+      link.download = `Espelho_Quaddra_Jesuino.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    });
   }
 
   function renderEspelho() {
