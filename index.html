@@ -1,721 +1,480 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quaddra Jesuíno · Backoffice Diretoria</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
-
-<!-- Bibliotecas para Exportar Imagem e Excel sem precisar de backend -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --gold: #B8963E; --gold-light: #D4AF5A; --bg: #0F1117; --surface: #16181F;
-    --surface2: #1E2028; --border: rgba(255,255,255,0.07); --text: #E2E8F0; --text-muted: #94A3B8;
-    --st-disponivel: #FFFFFF; --st-proposta: #86EFAC; --st-reserva: #F59E0B; --st-contrato: #3B82F6; --st-processo: #22C55E; --st-assinado: #15803D; --st-suspensa: #1E293B;
-  }
-  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-  
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-  .logo-title { display: flex; align-items: center; gap: 1rem; }
-  .logo-title h1 { font-size: 1.25rem; font-weight: 500; letter-spacing: 1px; color: #FFF; text-transform: uppercase; }
-  .logo-title span { color: var(--gold); font-size: 0.85rem; background: rgba(184,150,62,0.1); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid rgba(184,150,62,0.2); }
-  
-  .nav-tabs { display: flex; gap: 1rem; margin-left: 2rem; }
-  .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
-  .tab-btn:hover { color: #FFF; background: rgba(255,255,255,0.03); }
-  .tab-btn.active { color: var(--gold); background: rgba(184,150,62,0.1); border: 1px solid rgba(184,150,62,0.2); }
-
-  .sync-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
-  .sync-dot { width: 8px; height: 8px; background: #EF4444; border-radius: 50%; }
-  .sync-dot.online { background: #22C55E; box-shadow: 0 0 8px #22C55E; }
-  
-  .tab-content { flex: 1; display: none; overflow: hidden; }
-  .tab-content.active { display: flex; }
-  
-  .panel-left { flex: 1.2; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; border-right: 1px solid var(--border); }
-  .panel-right { flex: 0.8; background: var(--surface); overflow-y: auto; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-  
-  .panel-financeiro { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
-  .filter-bar { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
-  .filter-options { display: flex; align-items: center; gap: 2rem; }
-  .filter-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--gold); letter-spacing: 0.5px; }
-  .checkbox-group { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
-  .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; color: #FFF; }
-  .checkbox-label input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; }
-  .action-group { display: flex; gap: 0.75rem; }
-
-  .table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; padding: 1rem; }
-  
-  .kpis-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-  .kpi-card { background: var(--surface); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; display: flex; flex-direction: column; justify-content: space-between; min-height: 90px; }
-  .kpi-card p { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; font-weight: 500; letter-spacing: 0.5px; }
-  .kpi-card h3 { font-size: 1.15rem; font-weight: 600; color: #FFF; margin-bottom: 0.15rem; }
-  .kpi-sub { font-size: 0.75rem; color: var(--gold); font-weight: 500; display: flex; justify-content: space-between; }
-  
-  .espelho-container { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; position: relative; }
-  .espelho-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
-  .grid-predio { display: flex; flex-direction: column-reverse; gap: 0.5rem; max-width: 500px; margin: 0 auto; padding: 1rem; background: var(--surface); }
-  .andar-row { display: flex; gap: 0.5rem; align-items: center; }
-  .label-andar { width: 40px; font-size: 0.75rem; color: var(--text-muted); text-align: right; }
-  .unit-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); padding: 0.75rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; position: relative; }
-  .unit-box:hover { border-color: var(--gold); transform: translateY(-1px); }
-  .unit-box.selected { border-color: var(--gold); box-shadow: 0 0 12px rgba(184,150,62,0.2); }
-  .unit-name { font-size: 0.95rem; font-weight: 600; color: #FFF; margin-bottom: 0.15rem; }
-  .unit-meta { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
-  
-  .u-disponivel { border-left: 4px solid var(--st-disponivel); }
-  .u-proposta { border-left: 4px solid var(--st-proposta); background: rgba(134,239,172,0.03); }
-  .u-reserva_venda { border-left: 4px solid var(--st-reserva); background: rgba(245,158,11,0.03); }
-  .u-contrato_enviado { border-left: 4px solid var(--st-contrato); background: rgba(59,130,246,0.03); }
-  .u-processo { border-left: 4px solid var(--st-processo); background: rgba(34,197,94,0.03); }
-  .u-cv_assinado { border-left: 4px solid var(--st-assinado); background: rgba(21,128,61,0.03); }
-  .u-suspensa { border-left: 4px solid var(--st-suspensa); opacity: 0.5; }
-  
-  .painel-vazio { padding: 3rem; text-align: center; color: var(--text-muted); margin: auto; }
-  .painel-vazio i { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
-  .editor-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .editor-header h2 { font-size: 1.2rem; color: #FFF; }
-  .editor-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; flex: 1; }
-  
-  .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-  label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; }
-  input, select, textarea { background: var(--surface2); border: 1px solid var(--border); padding: 0.65rem; border-radius: 4px; color: #FFF; font-family: inherit; font-size: 0.9rem; width: 100%; }
-  input:focus, select:focus, textarea:focus { border-color: var(--gold); outline: none; }
-  
-  .esteira-fluxo { display: flex; gap: 0.25rem; background: var(--surface2); padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border); }
-  .step-btn { flex: 1; padding: 0.5rem 0.25rem; font-size: 0.65rem; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 3px; font-weight: 500; text-transform: uppercase; text-align: center; }
-  .step-btn.active { background: var(--gold); color: #000; font-weight: 600; }
-  
-  .fin-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-  .fin-table th { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; padding: 0.65rem; text-align: left; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.01); }
-  .fin-table td { padding: 0.65rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; }
-  .fin-table input { padding: 0.4rem; font-size: 0.85rem; width: 100%; }
-  
-  /* Classe auxiliar para esconder as colunas das unidades dinamicamente */
-  .hide-unit-col { display: none !important; }
-  
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.65rem 1.25rem; font-size: 0.85rem; font-weight: 500; border-radius: 4px; cursor: pointer; transition: background 0.2s; border: none; }
-  .btn-gold { background: var(--gold); color: #000; font-weight: 600; }
-  .btn-gold:hover { background: var(--gold-light); }
-  .btn-sec { background: var(--surface2); border: 1px solid var(--border); color: #FFF; width: auto; }
-  .btn-danger { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); width: auto; }
-  
-  .editor-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: var(--surface2); display: flex; justify-content: flex-end; gap: 1rem; }
-</style>
+  <meta charset="UTF-8">
+  <title>Painel Quaddra Jesuíno - Diretoria</title>
+  <!-- Tailwind CSS para Estilização Premium -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome para Ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+    .card-premium { background: linear-gradient(145deg, #111827, #1f2937); border: 1px solid #374151; }
+    .gold-text { color: #d4af37; }
+    .gold-btn { background-color: #d4af37; color: #0b0f19; }
+    .gold-btn:hover { background-color: #baa02a; }
+    .input-premium { background-color: #1f2937; border: 1px solid #4b5563; color: #ffffff; }
+    .input-premium:focus { border-color: #d4af37; outline: none; }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+  </style>
 </head>
-<body>
+<body class="p-6">
 
-<header>
-  <div class="logo-title">
-    <h1>Quaddra Jesuíno</h1>
-    <span>Backoffice Diretoria</span>
+  <!-- TOP BAR -->
+  <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center space-x-4">
+      <h1 class="text-2xl font-bold tracking-wider">QUADDRA JESUÍNO</h1>
+      <span class="bg-amber-900/40 text-amber-400 text-xs px-2 py-1 rounded font-semibold border border-amber-800">Backoffice Diretoria</span>
+    </div>
+    <div class="flex items-center space-x-6 text-sm">
+      <span onclick="mudarAba('espelho')" id="nav-espelho" class="text-amber-400 font-semibold border-b-2 border-amber-400 pb-4 mt-4 cursor-pointer transition"><i class="fa-solid fa-table-cells mr-1"></i> Espelho de Vendas</span>
+      <span onclick="mudarAba('controle')" id="nav-controle" class="text-gray-400 hover:text-amber-400 cursor-pointer pb-4 mt-4 transition"><i class="fa-solid fa-coins mr-1"></i> Controle Financeiro</span>
+      <span class="text-green-400 flex items-center text-xs"><span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span> Conectado ao Google Sheets</span>
+    </div>
+  </div>
+
+  <!-- SEÇÃO: ESPELHO DE VENDAS E CONTROLE FINANCEIRO -->
+  <div id="conteudo-dinamico">
     
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('espelho')"><i class="ti ti-layout-dashboard"></i>Espelho de Vendas</button>
-      <button class="tab-btn" onclick="switchTab('financeiro')"><i class="ti ti-coin-bitcoin"></i>Controle Financeiro</button>
-    </div>
-  </div>
-  <div class="sync-status">
-    <div id="syncDot" class="sync-dot"></div>
-    <span id="syncText">A carregar dados do Sheets...</span>
-  </div>
-</header>
-
-<!-- ABA 1: ESPELHO DE VENDAS -->
-<div id="tab-espelho" class="tab-content active">
-  <div class="panel-left">
-    <div class="kpis-grid">
-      <div class="kpi-card">
-        <p>VGV Assinado (CV)</p>
-        <h3 id="kpiVgvAssinado">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countAssinado">0 un</span><span>Fechado</span></div>
-      </div>
-      <div class="kpi-card">
-        <p>VGV em Processo / Contrato</p>
-        <h3 id="kpiVgvProcesso">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countProcesso">0 un</span><span>Backoffice</span></div>
-      </div>
-      <div class="kpi-card">
-        <p>VGV em Proposta / Reserva</p>
-        <h3 id="kpiVgvProposta">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countProposta">0 un</span><span>Mesa Comercial</span></div>
-      </div>
-      <div class="kpi-card">
-        <p>Estoque Disponível</p>
-        <h3 id="kpiDisponivel">33 un</h3>
-        <div class="kpi-sub"><span id="countSuspensa">0 un</span></div>
-      </div>
-    </div>
-
-    <div class="espelho-container">
-      <div class="espelho-header">
-        <span>Estrutura de Pavimentos Reais</span>
-        <button class="btn btn-sec" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="exportarEspelhoImagem()"><i class="ti ti-camera"></i> Salvar como Imagem</button>
-      </div>
-      <div id="captureArea">
-        <div class="grid-predio" id="predioContainer"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel-right" id="painelDireto">
-    <div class="painel-vazio">
-      <i class="ti ti-building-store"></i>
-      <p>Selecione uma unidade no espelho para visualizar o fluxo financeiro e o histórico da esteira.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ABA 2: CONTROLE FINANCEIRO -->
-<div id="tab-financeiro" class="tab-content">
-  <div class="panel-financeiro">
-    
-    <div class="filter-bar">
-      <div class="filter-options">
-        <div class="filter-title">Status:</div>
-        <div class="checkbox-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkAssinado" checked onchange="renderFinanceiro()"> 
-            <span style="color: #15803D;">●</span> Assinado
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkProcesso" checked onchange="renderFinanceiro()"> 
-            <span style="color: #22C55E;">●</span> Processo
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkContrato" checked onchange="renderFinanceiro()"> 
-            <span style="color: #3B82F6;">●</span> Contrato Enviado
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkReserva" checked onchange="renderFinanceiro()"> 
-            <span style="color: #F59E0B;">●</span> Reserva Venda
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkProposta" checked onchange="renderFinanceiro()"> 
-            <span style="color: #86EFAC;">●</span> Proposta
-          </label>
+    <!-- CARDS SUPERIORES (VGV E RESUMOS) -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <!-- CARD 1: VGV ASSINADO -->
+      <div class="card-premium p-4 rounded-xl shadow-lg relative overflow-hidden">
+        <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">VGV Assinado (CV)</p>
+        <p class="text-2xl font-bold mt-1 text-white" id="card1-valor">R$ 0</p>
+        <div class="flex justify-between items-center mt-2 text-xs text-gray-400">
+          <span id="card1-unidades">0 un</span>
+          <span class="bg-green-950 text-green-400 px-2 py-0.5 rounded border border-green-800 font-medium">Fechado</span>
         </div>
       </div>
-      
-      <div class="action-group">
-        <button class="btn btn-sec" id="btnToggleUnidades" onclick="toggleVisibilidadeUnidades()"><i class="ti ti-eye-off"></i> Esconder Unidades</button>
-        <button class="btn btn-gold" onclick="exportarFluxoExcel()"><i class="ti ti-download"></i> Exportar Excel</button>
+
+      <!-- CARD 2: VGV EM PROCESSO / CONTRATO -->
+      <div class="card-premium p-4 rounded-xl shadow-lg relative overflow-hidden">
+        <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">VGV em Processo / Contrato</p>
+        <p class="text-2xl font-bold mt-1 text-white" id="card2-valor">R$ 0</p>
+        <div class="flex justify-between items-center mt-2 text-xs text-gray-400">
+          <span id="card2-unidades">0 un no backoffice</span>
+          <span class="bg-blue-950 text-blue-400 px-2 py-0.5 rounded border border-blue-800 font-medium">Backoffice</span>
+        </div>
+      </div>
+
+      <!-- CARD 3: VGV EM PROPOSTA / RESERVA -->
+      <div class="card-premium p-4 rounded-xl shadow-lg relative overflow-hidden">
+        <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">VGV em Proposta / Reserva</p>
+        <p class="text-2xl font-bold mt-1 text-white" id="card3-valor">R$ 0</p>
+        <div class="flex justify-between items-center mt-2 text-xs text-gray-400">
+          <span id="card3-unidades">0 un em negociação</span>
+          <span class="bg-orange-950 text-orange-400 px-2 py-0.5 rounded border border-orange-800 font-medium">Mesa Comercial</span>
+        </div>
+      </div>
+
+      <!-- CARD 4: ESTOQUE DISPONÍVEL -->
+      <div class="card-premium p-4 rounded-xl shadow-lg relative overflow-hidden">
+        <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Estoque Disponível</p>
+        <p class="text-2xl font-bold mt-1 text-white" id="card4-disponivel">0 un</p>
+        <div class="flex justify-between items-center mt-2 text-xs text-gray-400">
+          <span id="card4-suspenso">0 un suspensas</span>
+          <span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700 font-medium">Disponível</span>
+        </div>
       </div>
     </div>
 
-    <div class="table-container">
-      <table class="fin-table" id="tabelaFluxoCompilado">
-        <thead></thead>
-        <tbody id="corpoFluxoCompilado"></tbody>
+    <!-- FILTROS DE STATUS -->
+    <div class="card-premium p-4 rounded-xl mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-6">
+        <span class="text-xs font-bold uppercase tracking-widest text-amber-400">STATUS:</span>
+        <label class="flex items-center space-x-2 text-sm cursor-pointer">
+          <input type="checkbox" checked class="status-filter rounded border-gray-700 text-amber-500 focus:ring-0 bg-gray-900" value="ASSINADO">
+          <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> ASSINADO</span>
+        </label>
+        <label class="flex items-center space-x-2 text-sm cursor-pointer">
+          <input type="checkbox" checked class="status-filter rounded border-gray-700 text-amber-500 focus:ring-0 bg-gray-900" value="PROCESSO COMERCIAL">
+          <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-teal-500 mr-2"></span> PROCESSO</span>
+        </label>
+        <label class="flex items-center space-x-2 text-sm cursor-pointer">
+          <input type="checkbox" checked class="status-filter rounded border-gray-700 text-amber-500 focus:ring-0 bg-gray-900" value="CONTRATO ENVIADO">
+          <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span> CONTRATO ENVIADO</span>
+        </label>
+        <label class="flex items-center space-x-2 text-sm cursor-pointer">
+          <input type="checkbox" checked class="status-filter rounded border-gray-700 text-amber-500 focus:ring-0 bg-gray-900" value="RESERVA VENDA">
+          <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-orange-500 mr-2"></span> RESERVA VENDA</span>
+        </label>
+        <label class="flex items-center space-x-2 text-sm cursor-pointer">
+          <input type="checkbox" checked class="status-filter rounded border-gray-700 text-amber-500 focus:ring-0 bg-gray-900" value="PROPOSTA">
+          <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span> PROPOSTA</span>
+        </label>
+      </div>
+      <div class="flex space-x-3">
+        <button onclick="toggleVisualizacaoUnidades()" id="btn-toggle-unidades" class="border border-gray-700 hover:bg-gray-800 text-xs px-4 py-2 rounded-lg font-medium transition"><i class="fa-solid fa-eye-slash mr-1"></i> Esconder Unidades</button>
+        <button onclick="exportarGradeExcel()" class="gold-btn text-xs px-4 py-2 rounded-lg font-bold transition"><i class="fa-solid fa-download mr-1"></i> Exportar Excel</button>
+      </div>
+    </div>
+
+    <!-- TABELA CONSOLIDADA DE PARCELAS -->
+    <div class="card-premium rounded-xl shadow-2xl overflow-x-auto p-4 transition-all duration-300" id="container-tabela-principal">
+      <table class="w-full text-left border-collapse" id="tabela-fluxos">
+        <thead>
+          <tr class="border-b border-gray-800 text-xxs font-bold uppercase tracking-wider text-gray-400" id="tabela-cabecalho">
+            <th class="p-3">MÊS/ANO</th>
+            <!-- Colunas das Unidades dinâmicas -->
+            <th class="p-3 text-amber-400 font-bold">TOTAL GERAL</th>
+            <th class="p-3 text-green-400 font-bold">ACUMULADO</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-gray-800/50" id="tabela-corpo">
+          <tr>
+            <td colspan="100" class="text-center py-12 text-gray-500">Carregando dados estruturados...</td>
+          </tr>
+        </tbody>
       </table>
     </div>
-
   </div>
-</div>
 
-<script>
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec";
-
-  let units = [];
-  let selectedUnitId = null;
-  let esconderUnidades = false; 
-
-  function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    
-    if(tabName === 'espelho') {
-      document.getElementById('tab-espelho').classList.add('active');
-      event.currentTarget.classList.add('active');
-    } else {
-      document.getElementById('tab-financeiro').classList.add('active');
-      event.currentTarget.classList.add('active');
-      renderFinanceiro();
-    }
-  }
-
-  function buildRealJesuinoTree() {
-    const list = [];
-    list.push({ id_unidade: "21", andar: 2, final: 1, metragem: 478, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    for (let a = 3; a <= 27; a++) {
-      list.push({ id_unidade: `${a}1`, andar: a, final: 1, metragem: 387, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    }
-    list.push({ id_unidade: "281", andar: 28, final: 1, metragem: 609, tipo: "Cobertura", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-
-    list.push({ id_unidade: "22", andar: 2, final: 2, metragem: 349, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    for (let a = 3; a <= 6; a++) {
-      list.push({ id_unidade: `${a}2`, andar: a, final: 2, metragem: 326, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    }
-    list.push({ id_unidade: "72", andar: 7, final: 2, metragem: 545, tipo: "Duplex", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-
-    return list;
-  }
-
-  function tratarFormatoData(dataS) {
-    if(!dataS) return "";
-    if(dataS.includes("T")) {
-      let pedaco = dataS.split("T")[0];
-      let partes = pedaco.split("-");
-      return `${partes[1]}/${partes[0]}`;
-    }
-    return dataS;
-  }
-
-  async function carregarDados() {
-    try {
-      const response = await fetch(GOOGLE_SCRIPT_URL);
-      const result = await response.json();
-      const localTree = buildRealJesuinoTree();
-
-      if (result && result.status === "success" && Array.isArray(result.data)) {
-        const cloudData = result.data;
+  <!-- MODAL: FORMULÁRIO DE EDIÇÃO DA UNIDADE (CRUCIAL PARA OS MODULOS DO CORPO DO SITE) -->
+  <div id="modal-edicao" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4">
+    <div class="card-premium rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
+      <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
+        <h3 class="text-lg font-bold text-white flex items-center"><i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i> Editar Fluxo - <span id="modal-titulo-unidade" class="text-amber-400 ml-1"></span></h3>
+        <button onclick="fecharModalEdicao()" class="text-gray-400 hover:text-white transition text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <input type="hidden" id="form-id-unidade">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Nome do Cliente</label>
+            <input type="text" id="form-cliente-nome" class="w-full p-2.5 rounded-lg input-premium text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Status Atual</label>
+            <select id="form-status-espelho" class="w-full p-2.5 rounded-lg input-premium text-sm">
+              <option value="DISPONIVEL">DISPONÍVEL</option>
+              <option value="ASSINADO">ASSINADO</option>
+              <option value="PROCESSO COMERCIAL">PROCESSO COMERCIAL</option>
+              <option value="CONTRATO ENVIADO">CONTRATO ENVIADO</option>
+              <option value="RESERVA VENDA">RESERVA VENDA</option>
+              <option value="PROPOSTA">PROPOSTA</option>
+              <option value="SUSPENSO">SUSPENSO</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Observações do Backoffice</label>
+          <textarea id="form-observacoes" rows="3" class="w-full p-2.5 rounded-lg input-premium text-sm placeholder-gray-600" placeholder="Digite as atualizações sobre o andamento do contrato..."></textarea>
+        </div>
         
-        localTree.forEach(u => {
-          const match = cloudData.find(c => String(c.id_unidade) === String(u.id_unidade));
-          if (match) {
-            u.status_espelho = match.status_espelho || "DISPONIVEL";
-            u.cliente_nome = match.cliente_nome || "";
-            u.observacoes = match.observacoes || "";
-            u.fase_esteira = parseInt(match.fase_esteira) || 1;
-            
-            if(match.fluxo_financeiro) {
-              u.fluxo_financeiro = match.fluxo_financeiro.map(f => {
-                f.data_vencimento = tratarFormatoData(f.data_vencimento);
-                return f;
-              });
-            } else {
-              u.fluxo_financeiro = [];
-            }
-          }
-        });
+        <!-- Bloco de Parcelas Financeiras no Formulário -->
+        <div class="border-t border-gray-800 pt-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400"><i class="fa-solid fa-money-bill-wave mr-1"></i> Cronograma de Parcelas</h4>
+            <button onclick="adicionarNovaLinhaParcela()" class="border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xxs px-3 py-1.5 rounded-lg font-bold transition"><i class="fa-solid fa-plus mr-1"></i> Add Parcela</button>
+          </div>
+          <div class="space-y-2" id="form-lista-parcelas">
+            <!-- Gerado via JavaScript -->
+          </div>
+        </div>
+      </div>
+      <div class="p-4 border-t border-gray-800 bg-gray-900/30 flex justify-end space-x-3">
+        <button onclick="fecharModalEdicao()" class="border border-gray-700 hover:bg-gray-800 text-xs px-5 py-2.5 rounded-lg font-semibold transition">Cancelar</button>
+        <button onclick="salvarDadosFormulario()" id="btn-salvar-modal" class="gold-btn text-xs px-6 py-2.5 rounded-lg font-bold transition shadow-lg flex items-center"><i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT OPERACIONAL COMPLETO -->
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec"; 
+
+    let dadosOriginais = [];
+    let abaAtual = 'espelho';
+    let esconderColunasUnidades = false;
+
+    async function carregarDados() {
+      try {
+        const response = await fetch(API_URL);
+        const res = await response.json();
         
-        document.getElementById("syncDot").className = "sync-dot online";
-        document.getElementById("syncText").innerText = "Conectado ao Google Sheets";
-      }
-      
-      units = localTree;
-      renderEspelho();
-      renderKPIs();
-      
-      if (selectedUnitId) {
-        renderGaveta(selectedUnitId);
-      }
-    } catch (error) {
-      console.error(error);
-      document.getElementById("syncDot").className = "sync-dot";
-      document.getElementById("syncText").innerText = "Modo Offline";
-    }
-  }
-
-  function toggleVisibilidadeUnidades() {
-    esconderUnidades = !esconderUnidades;
-    const btn = document.getElementById("btnToggleUnidades");
-    if(esconderUnidades) {
-      btn.innerHTML = `<i class="ti ti-eye"></i> Mostrar Unidades`;
-    } else {
-      btn.innerHTML = `<i class="ti ti-eye-off"></i> Esconder Unidades`;
-    }
-    renderFinanceiro();
-  }
-
-  function renderFinanceiro() {
-    const chkAssinado = document.getElementById("chkAssinado").checked;
-    const chkProcesso = document.getElementById("chkProcesso").checked;
-    const chkContrato = document.getElementById("chkContrato").checked;
-    const chkReserva = document.getElementById("chkReserva").checked;
-    const chkProposta = document.getElementById("chkProposta").checked;
-
-    const unidadesFiltradas = units.filter(u => {
-      if (u.status_espelho === "CV_ASSINADO" && chkAssinado) return true;
-      if (u.status_espelho === "PROCESSO" && chkProcesso) return true;
-      if (u.status_espelho === "CONTRATO_ENVIADO" && chkContrato) return true;
-      if (u.status_espelho === "RESERVA_VENDA" && chkReserva) return true;
-      if (u.status_espelho === "PROPOSTA" && chkProposta) return true;
-      return false;
-    });
-
-    let todosMeses = [];
-    unidadesFiltradas.forEach(u => {
-      u.fluxo_financeiro.forEach(f => {
-        if(f.data_vencimento && !todosMeses.includes(f.data_vencimento)) {
-          todosMeses.push(f.data_vencimento);
-        }
-      });
-    });
-
-    todosMeses.sort((a, b) => {
-      let pA = a.split("/"), pB = b.split("/");
-      return new Date(pA[1], pA[0]-1) - new Date(pB[1], pB[0]-1);
-    });
-
-    const tabela = document.getElementById("tabelaFluxoCompilado");
-    tabela.innerHTML = "";
-
-    let thead = document.createElement("thead");
-    let headerRow = `<tr><th style="min-width:120px;">Mês/Ano</th>`;
-    
-    let displayStyle = esconderUnidades ? 'class="hide-unit-col"' : '';
-
-    unidadesFiltradas.forEach(u => {
-      headerRow += `<th ${displayStyle} style="font-size:0.75rem; text-align:right;">Ap ${u.id_unidade}<br><span style="color:var(--text-muted); font-weight:normal;">${u.cliente_nome || 'S/N'}</span></th>`;
-    });
-    
-    headerRow += `<th style="text-align:right; color:var(--gold);">Total Geral</th>`;
-    headerRow += `<th style="text-align:right; color:#22C55E;">Acumulado</th></tr>`;
-    thead.innerHTML = headerRow;
-    tabela.appendChild(thead);
-
-    let tbody = document.createElement("tbody");
-    let acumuladorVGV = 0;
-
-    todosMeses.forEach(mes => {
-      let rowHTML = `<tr><td style="font-weight:600; color:#FFF;">${mes}</td>`;
-      let totalDoMes = 0;
-
-      unidadesFiltradas.forEach(u => {
-        let parcelaDoMes = u.fluxo_financeiro.filter(f => f.data_vencimento === mes);
-        let somaParcela = parcelaDoMes.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
-        
-        if (somaParcela > 0) {
-          totalDoMes += somaParcela;
-          rowHTML += `<td ${displayStyle} style="text-align:right; color:var(--text); font-size:0.85rem;">${somaParcela.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>`;
+        if (res.status === "success") {
+          dadosOriginais = res.data;
+          processarPainel();
         } else {
-          rowHTML += `<td ${displayStyle} style="text-align:right; color:var(--text-muted); opacity:0.3;">-</td>`;
+          exibirErro("Erro de leitura na API: " + res.message);
+        }
+      } catch (error) {
+        exibirErro("Falha crítica de comunicação com o servidor.");
+      }
+    }
+
+    function processarPainel() {
+      const filtrosAtivos = Array.from(document.querySelectorAll('.status-filter:checked')).map(cb => cb.value);
+
+      let somaCard1 = 0, qtdCard1 = 0;
+      let somaCard2 = 0, qtdCard2 = 0;
+      let somaCard3 = 0, qtdCard3 = 0;
+      let qtdDisponivel = 0, qtdSuspensa = 0;
+
+      let mapaMeses = {}; 
+      let unidadesFiltradas = [];
+
+      dadosOriginais.forEach(un => {
+        const status = String(un.status_espelho).toUpperCase().trim();
+        const totalFluxoUnidade = un.fluxo_financeiro.reduce((acc, f) => acc + (parseFloat(f.valor) || 0), 0);
+
+        // --- SISTEMA DE SOMA DOS CARDS SUPERIORES ---
+        if (status === "VENDIDO" || status === "ASSINADO") {
+          somaCard1 += totalFluxoUnidade;
+          qtdCard1++;
+        } 
+        else if (status === "CONTRATO ENVIADO" || status === "PROCESSO COMERCIAL" || status === "PROCESSO") {
+          somaCard2 += totalFluxoUnidade;
+          qtdCard2++;
+        } 
+        else if (status === "PROPOSTA" || status === "RESERVA VENDA") {
+          somaCard3 += totalFluxoUnidade;
+          qtdCard3++;
+        } 
+        else if (status === "DISPONIVEL") {
+          qtdDisponivel++;
+        } 
+        else if (status === "SUSPENSO") {
+          qtdSuspensa++;
+        }
+
+        // --- ALINHAMENTO COM FILTROS DE STATUS ---
+        let statusParaFiltro = status;
+        if (status === "PROCESSO") statusParaFiltro = "PROCESSO COMERCIAL";
+
+        if (filtrosAtivos.includes(statusParaFiltro)) {
+          unidadesFiltradas.push(un);
+
+          un.fluxo_financeiro.forEach(fluxo => {
+            let dataRaw = fluxo.data_vencimento;
+            let mesAno = dataRaw;
+            
+            if (dataRaw.includes('/')) {
+              let partes = dataRaw.split('/');
+              mesAno = partes.length === 3 ? partes[1] + '/' + partes[2] : dataRaw;
+            }
+
+            if (!mapaMeses[mesAno]) mapaMeses[mesAno] = {};
+            if (!mapaMeses[mesAno][un.id_unidade]) mapaMeses[mesAno][un.id_unidade] = 0;
+            
+            mapaMeses[mesAno][un.id_unidade] += parseFloat(fluxo.valor) || 0;
+          });
         }
       });
 
-      acumuladorVGV += totalDoMes;
+      // Renderizar valores nos cards superiores
+      document.getElementById('card1-valor').innerText = formatarMoeda(somaCard1);
+      document.getElementById('card1-unidades').innerText = `${qtdCard1} un`;
+      document.getElementById('card2-valor').innerText = formatarMoeda(somaCard2);
+      document.getElementById('card2-unidades').innerText = `${qtdCard2} un no backoffice`;
+      document.getElementById('card3-valor').innerText = formatarMoeda(somaCard3);
+      document.getElementById('card3-unidades').innerText = `${qtdCard3} un em negociação`;
+      document.getElementById('card4-disponivel').innerText = `${qtdDisponivel} un`;
+      document.getElementById('card4-suspenso').innerText = `${qtdSuspensa} un suspensas`;
 
-      rowHTML += `<td style="text-align:right; font-weight:600; color:var(--gold); background:rgba(184,150,62,0.02);">${totalDoMes.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td>`;
-      rowHTML += `<td style="text-align:right; font-weight:600; color:#22C55E; background:rgba(34,197,94,0.02);">${acumuladorVGV.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td></tr>`;
+      // CONSTRUÇÃO E STRIPING DA GRADE FINANCEIRA VISUAL
+      const cabecalho = document.getElementById('tabela-cabecalho');
+      const corpo = document.getElementById('tabela-corpo');
+
+      cabecalho.innerHTML = `<th class="p-3 text-xs">MÊS/ANO</th>`;
       
-      tbody.insertAdjacentHTML('beforeend', rowHTML);
-    });
-
-    if(todosMeses.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:3rem; color:var(--text-muted);">Nenhum fluxo financeiro encontrado.</td></tr>`;
-    }
-
-    tabela.appendChild(tbody);
-  }
-
-  function exportarFluxoExcel() {
-    const table = document.getElementById("tabelaFluxoCompilado");
-    let tempTable = table.cloneNode(true);
-    tempTable.querySelectorAll('.hide-unit-col').forEach(el => el.classList.remove('hide-unit-col'));
-
-    const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Fluxo Mensal" });
-    XLSX.writeFile(wb, `Fluxo_Financeiro_Quaddra_Jesuino.xlsx`);
-  }
-
-  function exportarEspelhoImagem() {
-    const area = document.getElementById("captureArea");
-    html2canvas(area, {
-      backgroundColor: "#16181F",
-      logging: false,
-      scale: 2
-    }).then(canvas => {
-      let link = document.createElement('a');
-      link.download = `Espelho_Quaddra_Jesuino.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  }
-
-  function renderEspelho() {
-    const container = document.getElementById("predioContainer");
-    container.innerHTML = "";
-    const andares = [...new Set(units.map(u => u.andar))].sort((a,b) => a - b);
-
-    andares.forEach(andar => {
-      const row = document.createElement("div");
-      row.className = "andar-row";
-
-      const label = document.createElement("div");
-      label.className = "label-andar";
-      label.innerText = `${andar}º`;
-      row.appendChild(label);
-
-      const u1 = units.find(u => u.andar === andar && u.final === 1);
-      row.appendChild(createUnitDom(u1));
-
-      const u2 = units.find(u => u.andar === andar && u.final === 2);
-      row.appendChild(createUnitDom(u2));
-
-      container.appendChild(row);
-    });
-  }
-
-  function createUnitDom(u) {
-    const box = document.createElement("div");
-    if (!u) {
-      box.className = "unit-box";
-      box.style.opacity = "0";
-      box.style.pointerEvents = "none";
-      return box;
-    }
-
-    box.className = `unit-box u-${u.status_espelho.toLowerCase()} ${u.id_unidade === selectedUnitId ? 'selected' : ''}`;
-    box.onclick = () => selectUnit(u.id_unidade);
-
-    let displayStatusName = u.status_espelho.replace("_", " ");
-
-    box.innerHTML = `
-      <div class="unit-name">Ap ${u.id_unidade}</div>
-      <div class="unit-meta">
-        <span>${u.metragem}m²</span>
-        <strong style="color:${getStatusColor(u.status_espelho)}; font-size:0.65rem;">${displayStatusName}</strong>
-      </div>
-    `;
-    return box;
-  }
-
-  function getStatusColor(st) {
-    if (st === "PROPOSTA") return "#86EFAC";
-    if (st === "RESERVA_VENDA") return "#F59E0B";
-    if (st === "CONTRATO_ENVIADO") return "#3B82F6";
-    if (st === "PROCESSO") return "#22C55E";
-    if (st === "CV_ASSINADO") return "#15803D";
-    if (st === "SUSPENSA") return "#EF4444";
-    return "#94A3B8";
-  }
-
-  function renderKPIs() {
-    let vgvAssinado = 0, vgvProcesso = 0, vgvProposta = 0;
-    let cAssinado = 0, cProcesso = 0, cContrato = 0, cReserva = 0, cProposta = 0, cSuspensa = 0, cDisponivel = 0;
-
-    units.forEach(u => {
-      const totalUnidade = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
-      
-      if (u.status_espelho === "CV_ASSINADO") {
-        vgvAssinado += totalUnidade;
-        cAssinado++;
-      } else if (u.status_espelho === "PROCESSO" || u.status_espelho === "CONTRATO_ENVIADO") {
-        vgvProcesso += totalUnidade;
-        if(u.status_espelho === "PROCESSO") cProcesso++;
-        if(u.status_espelho === "CONTRATO_ENVIADO") cContrato++;
-      } else if (u.status_espelho === "PROPOSTA" || u.status_espelho === "RESERVA_VENDA") {
-        vgvProposta += totalUnidade;
-        if(u.status_espelho === "PROPOSTA") cProposta++;
-        if(u.status_espelho === "RESERVA_VENDA") cReserva++;
-      } else if (u.status_espelho === "SUSPENSA") {
-        cSuspensa++;
-      } else {
-        cDisponivel++;
+      // Se a flag para ocultar unidades estiver falsa, constrói colunas individuais
+      if (!esconderColunasUnidades) {
+        unidadesFiltradas.forEach(un => {
+          let identificador = `AP ${un.id_unidade}`;
+          if(un.cliente_nome) identificador += `<br><span class="text-xxs text-gray-500 font-normal">${un.cliente_nome.toUpperCase()}</span>`;
+          cabecalho.innerHTML += `<th onclick="abrirModalEdicao('${un.id_unidade}')" class="p-3 text-center text-xxs font-bold text-gray-300 border-x border-gray-800/40 cursor-pointer hover:bg-gray-800 transition">${identificador}</th>`;
+        });
       }
-    });
-
-    document.getElementById("kpiVgvAssinado").innerText = vgvAssinado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-    document.getElementById("kpiVgvProcesso").innerText = vgvProcesso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-    document.getElementById("kpiVgvProposta").innerText = vgvProposta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-    document.getElementById("kpiDisponivel").innerText = `${cDisponivel} un`;
-
-    document.getElementById("countAssinado").innerText = `${cAssinado} un`;
-    document.getElementById("countProcesso").innerText = `${cProcesso + cContrato} un no backoffice`;
-    document.getElementById("countProposta").innerText = `${cProposta + cReserva} un em negociação`;
-    document.getElementById("countSuspensa").innerText = `${cSuspensa} un suspensas`;
-  }
-
-  function selectUnit(id) {
-    selectedUnitId = id;
-    renderEspelho();
-    renderGaveta(id);
-  }
-
-  function renderGaveta(id) {
-    const u = units.find(x => x.id_unidade === id);
-    const rightPanel = document.getElementById("painelDireto");
-    let totalAtual = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
-
-    rightPanel.innerHTML = `
-      <div class="editor-header">
-        <div>
-          <h2>Unidade ${u.id_unidade}</h2>
-          <p style="font-size:0.8rem; color:var(--text-muted)">${u.tipo} — ${u.metragem}m²</p>
-        </div>
-        <div>
-          <span style="font-size:0.75rem; color:var(--text-muted)">VALOR TOTAL</span>
-          <h3 style="color:var(--gold)">${totalAtual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}</h3>
-        </div>
-      </div>
       
-      <div class="editor-body">
-        <div class="form-group">
-          <label>Status no Espelho</label>
-          <select id="editStatus" onchange="window.updateStatusLocal(this.value)">
-            <option value="DISPONIVEL" ${u.status_espelho === "DISPONIVEL" ? "selected" : ""}>DISPONÍVEL</option>
-            <option value="PROPOSTA" ${u.status_espelho === "PROPOSTA" ? "selected" : ""}>PROPOSTA EM ANÁLISE</option>
-            <option value="RESERVA_VENDA" ${u.status_espelho === "RESERVA_VENDA" ? "selected" : ""}>RESERVA VENDA</option>
-            <option value="CONTRATO_ENVIADO" ${u.status_espelho === "CONTRATO_ENVIADO" ? "selected" : ""}>CONTRATO ENVIADO</option>
-            <option value="PROCESSO" ${u.status_espelho === "PROCESSO" ? "selected" : ""}>EM PROCESSO COMERCIAL</option>
-            <option value="CV_ASSINADO" ${u.status_espelho === "CV_ASSINADO" ? "selected" : ""}>CV ASSINADO</option>
-            <option value="SUSPENSA" ${u.status_espelho === "SUSPENSA" ? "selected" : ""}>SUSPENSA / BLOQUEADA</option>
-          </select>
-        </div>
+      cabecalho.innerHTML += `<th class="p-3 text-amber-400 font-bold text-xs text-right">TOTAL GERAL</th>`;
+      cabecalho.innerHTML += `<th class="p-3 text-green-400 font-bold text-xs text-right">ACUMULADO</th>`;
 
-        <div class="form-group">
-          <label>Nome do Cliente</label>
-          <input type="text" id="editCliente" value="${u.cliente_nome || ''}" onchange="window.updateClienteLocal(this.value)" placeholder="Nome do proponente">
-        </div>
-
-        <div class="form-group">
-          <label>Observações da Unidade</label>
-          <textarea id="editObservacoes" rows="3" onchange="window.updateObservacoesLocal(this.value)" placeholder="Histórico de negociação, observações de fluxos ou permutas...">${u.observacoes || ''}</textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Esteira de Vendas Interna</label>
-          <div class="esteira-fluxo">
-            <button class="step-btn ${u.fase_esteira === 1 ? 'active' : ''}" onclick="window.setFaseLocal(1)">1. Proposta</button>
-            <button class="step-btn ${u.fase_esteira === 2 ? 'active' : ''}" onclick="window.setFaseLocal(2)">2. Aprov. Dir</button>
-            <button class="step-btn ${u.fase_esteira === 3 ? 'active' : ''}" onclick="window.setFaseLocal(3)">3. Crédito</button>
-            <button class="step-btn ${u.fase_esteira === 4 ? 'active' : ''}" onclick="window.setFaseLocal(4)">4. Jurídico</button>
-            <button class="step-btn ${u.fase_esteira === 5 ? 'active' : ''}" onclick="window.setFaseLocal(5)">5. Coleta</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div style="display:flex; justify-content:space-between; align-items:center">
-            <label>Fluxo Financeiro da Unidade</label>
-            <button class="btn btn-sec" style="padding:0.25rem 0.5rem; font-size:0.75rem" onclick="window.addLinhaFluxo()">+ Parcela</button>
-          </div>
-          <table class="fin-table">
-            <thead>
-              <tr>
-                <th>Mês/Ano</th>
-                <th>Condição</th>
-                <th>Valor (R$)</th>
-                <th>%</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${u.fluxo_financeiro.map((f, i) => {
-                let pct = totalAtual > 0 ? ((parseFloat(f.valor) / totalAtual) * 100).toFixed(1) : 0;
-                return `
-                <tr>
-                  <td><input type="text" value="${f.data_vencimento}" placeholder="MM/AAAA" onchange="window.updateFluxoRow(${i}, 'data_vencimento', this.value)"></td>
-                  <td><input type="text" value="${f.descricao}" placeholder="Ato, Anual..." onchange="window.updateFluxoRow(${i}, 'descricao', this.value)"></td>
-                  <td><input type="number" value="${f.valor}" step="0.01" onchange="window.updateFluxoRow(${i}, 'valor', this.value)"></td>
-                  <td style="font-size:0.8rem; font-weight:600; color:var(--gold); padding-left:5px;">${pct}%</td>
-                  <td><button class="btn btn-danger" style="padding:0.25rem" onclick="window.deleteFluxoRow(${i})"><i class="ti ti-trash"></i></button></td>
-                </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="editor-footer">
-        <button class="btn btn-sec" onclick="window.carregarDados()">Cancelar</button>
-        <button class="btn btn-gold" id="btnSalvar" onclick="window.salvarUnidadeData('${u.id_unidade}')">Salvar na Planilha</button>
-      </div>
-    `;
-  }
-
-  window.updateStatusLocal = function(val) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
-    u.status_espelho = val;
-    if(val === "RESERVA_VENDA") u.fase_esteira = 1;
-    if(val === "CONTRATO_ENVIADO") u.fase_esteira = 4;
-    if(val === "PROCESSO") u.fase_esteira = 2;
-    if(val === "CV_ASSINADO") u.fase_esteira = 5;
-    renderKPIs();
-    renderGaveta(selectedUnitId);
-  }
-
-  window.updateClienteLocal = function(val) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
-    u.cliente_nome = val;
-  }
-
-  window.updateObservacoesLocal = function(val) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
-    u.observacoes = val;
-  }
-
-  window.setFaseLocal = function(fase) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
-    u.fase_esteira = fase;
-    renderGaveta(selectedUnitId);
-  }
-
-  window.updateFluxoRow = function(index, field, value) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
-    u.fluxo_financeiro[index][field] = value;
-    renderKPIs();
-    if(field === 'valor') { renderGaveta(selectedUnitId); }
-  }
-
-  window.addLinhaFluxo = function() {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
-    let dataAtual = new Date();
-    let formatada = String(dataAtual.getMonth() + 1).padStart(2, '0') + "/" + dataAtual.getFullYear();
-    u.fluxo_financeiro.push({ data_vencimento: formatada, descricao: "", valor: 0 });
-    renderGaveta(selectedUnitId);
-  }
-
-  window.deleteFluxoRow = function(index) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
-    u.fluxo_financeiro.splice(index, 1);
-    renderGaveta(selectedUnitId);
-    renderKPIs();
-  }
-
-  window.salvarUnidadeData = async function(id) {
-    const btn = document.getElementById("btnSalvar");
-    btn.innerText = "A guardar...";
-    btn.disabled = true;
-
-    const u = units.find(x => x.id_unidade === id);
-
-    const payload = {
-      action: "updateUnit",
-      id_unidade: String(u.id_unidade),
-      status_espelho: u.status_espelho,
-      cliente_nome: u.cliente_nome,
-      observacoes: u.observacoes,
-      fase_esteira: String(u.fase_esteira),
-      fluxo_financeiro: u.fluxo_financeiro
-    };
-
-    try {
-      document.getElementById("syncDot").className = "sync-dot";
-      document.getElementById("syncText").innerText = "A enviar dados para o Sheets...";
-
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      let chavesMesesOrdenadas = Object.keys(mapaMeses).sort((a, b) => {
+        let pA = a.split('/'), pB = b.split('/');
+        return new Date(pA[1], pA[0] - 1) - new Date(pB[1], pB[0] - 1);
       });
 
-      setTimeout(() => {
-        carregarDados();
-        alert(`Sucesso! Unidade ${id} enviada para processamento na planilha.`);
-      }, 1000);
+      if (chavesMesesOrdenadas.length === 0) {
+        corpo.innerHTML = `<tr><td colspan="100" class="text-center py-12 text-gray-500">Nenhum fluxo financeiro encontrado para os filtros selecionados.</td></tr>`;
+        return;
+      }
 
-    } catch (error) {
-      console.error(error);
-      alert("Erro na conexão.");
-      carregarDados();
+      corpo.innerHTML = "";
+      let acumuladoGeral = 0;
+
+      chavesMesesOrdenadas.forEach(mesAno => {
+        let trHtml = `<tr class="hover:bg-gray-800/30 transition border-b border-gray-800/50"><td class="p-3 font-semibold text-gray-300">${mesAno}</td>`;
+        let totalLinhaMes = 0;
+
+        if (!esconderColunasUnidades) {
+          unidadesFiltradas.forEach(un => {
+            let valorCelular = mapaMeses[mesAno][un.id_unidade] || 0;
+            totalLinhaMes += valorCelular;
+            trHtml += `<td class="p-3 text-center border-x border-gray-800/20 ${valorCelular > 0 ? 'text-gray-200' : 'text-gray-600'}">
+              ${valorCelular > 0 ? formatarMoeda(valorCelular) : '-'}
+            </td>`;
+          });
+        } else {
+          // Se as colunas estiverem escondidas, apenas soma o valor consolidado invisível
+          unidadesFiltradas.forEach(un => {
+            totalLinhaMes += (mapaMeses[mesAno][un.id_unidade] || 0);
+          });
+        }
+
+        acumuladoGeral += totalLinhaMes;
+        trHtml += `<td class="p-3 text-right font-bold text-amber-400/90 bg-amber-950/10">${formatarMoeda(totalLinhaMes)}</td>`;
+        trHtml += `<td class="p-3 text-right font-bold text-green-400 bg-green-950/10">${formatarMoeda(acumuladoGeral)}</td></tr>`;
+        
+        corpo.innerHTML += trHtml;
+      });
     }
-  };
 
-  window.onload = () => {
-    units = buildRealJesuinoTree();
-    renderEspelho();
-    renderKPIs();
-    carregarDados();
-  };
-</script>
+    // --- FUNÇÕES DE INTERAÇÃO DO USUÁRIO (O QUE ESTAVA FALTANDO) ---
+    
+    function mudarAba(alvo) {
+      abaAtual = alvo;
+      const navEspelho = document.getElementById('nav-espelho');
+      const navControle = document.getElementById('nav-controle');
+      
+      if (alvo === 'espelho') {
+        navEspelho.className = "text-amber-400 font-semibold border-b-2 border-amber-400 pb-4 mt-4 cursor-pointer transition";
+        navControle.className = "text-gray-400 hover:text-amber-400 cursor-pointer pb-4 mt-4 transition";
+        document.getElementById('container-tabela-principal').classList.remove('opacity-40');
+      } else {
+        navControle.className = "text-amber-400 font-semibold border-b-2 border-amber-400 pb-4 mt-4 cursor-pointer transition";
+        navEspelho.className = "text-gray-400 hover:text-amber-400 cursor-pointer pb-4 mt-4 transition";
+      }
+    }
+
+    function toggleVisualizacaoUnidades() {
+      esconderColunasUnidades = !esconderColunasUnidades;
+      const btn = document.getElementById('btn-toggle-unidades');
+      if (esconderColunasUnidades) {
+        btn.innerHTML = `<i class="fa-solid fa-eye mr-1"></i> Mostrar Unidades`;
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-eye-slash mr-1"></i> Esconder Unidades`;
+      }
+      processarPainel();
+    }
+
+    function abrirModalEdicao(idUnidade) {
+      const un = dadosOriginais.find(item => item.id_unidade === idUnidade);
+      if (!un) return;
+
+      document.getElementById('form-id-unidade').value = un.id_unidade;
+      document.getElementById('modal-titulo-unidade').innerText = un.id_unidade;
+      document.getElementById('form-cliente-nome').value = un.cliente_nome || "";
+      document.getElementById('form-status-espelho').value = un.status_espelho || "DISPONIVEL";
+      document.getElementById('form-observacoes').value = un.observacoes || "";
+
+      const containerParcelas = document.getElementById('form-lista-parcelas');
+      containerParcelas.innerHTML = "";
+
+      if (un.fluxo_financeiro && un.fluxo_financeiro.length > 0) {
+        un.fluxo_financeiro.forEach(f => renderizarLinhaParcelaFormulario(f.data_vencimento, f.descricao, f.valor));
+      } else {
+        adicionarNovaLinhaParcela();
+      }
+
+      document.getElementById('modal-edicao').classList.remove('hidden');
+    }
+
+    function fecharModalEdicao() {
+      document.getElementById('modal-edicao').classList.add('hidden');
+    }
+
+    function renderizarLinhaParcelaFormulario(vencimento = "", descricao = "", valor = "") {
+      const container = document.getElementById('form-lista-parcelas');
+      const div = document.createElement('div');
+      div.className = "flex items-center space-x-2 bg-gray-900/60 p-2 rounded-lg border border-gray-800 target-linha-parcela";
+      div.innerHTML = `
+        <input type="text" placeholder="MM/AAAA" value="${vencimento}" class="w-1/4 p-2 rounded bg-gray-800 text-sm border border-gray-700 text-center val-vencimento">
+        <input type="text" placeholder="Ex: Ato, Mensal, Financiamento" value="${descricao}" class="w-2/4 p-2 rounded bg-gray-800 text-sm border border-gray-700 val-descricao">
+        <input type="number" placeholder="Valor (R$)" value="${valor}" class="w-1/4 p-2 rounded bg-gray-800 text-sm border border-gray-700 text-right val-valor">
+        <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
+      `;
+      container.appendChild(div);
+    }
+
+    function adicionarNovaLinhaParcela() {
+      renderizarLinhaParcelaFormulario();
+    }
+
+    async function salvarDadosFormulario() {
+      const btn = document.getElementById('btn-salvar-modal');
+      const idUn = document.getElementById('form-id-unidade').value;
+      
+      btn.disabled = true;
+      btn.innerText = "Salvando...";
+
+      let fluxoColetado = [];
+      document.querySelectorAll('.target-linha-parcela').forEach(linha => {
+        const venc = linha.querySelector('.val-vencimento').value.trim();
+        const desc = linha.querySelector('.val-descricao').value.trim();
+        const val = parseFloat(linha.querySelector('.val-valor').value) || 0;
+
+        if (venc && val > 0) {
+          fluxoColetado.push({ data_vencimento: venc, descricao: desc, valor: val });
+        }
+      });
+
+      const payload = {
+        action: "updateUnit",
+        id_unidade: idUn,
+        cliente_nome: document.getElementById('form-cliente-nome').value.trim(),
+        status_espelho: document.getElementById('form-status-espelho').value,
+        observacoes: document.getElementById('form-observacoes').value.trim(),
+        fluxo_financeiro: fluxoColetado
+      };
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors", // Evita problemas de CORS no redirecionamento do Google
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        // Como o modo "no-cors" não lê a resposta de sucesso diretamente, forçamos um recarregamento preventivo
+        setTimeout(() => {
+          fecharModalEdicao();
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Alterações`;
+          carregarDados();
+        }, 1500);
+
+      } catch (err) {
+        alert("Erro ao sincronizar com a planilha do Google.");
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar Alterações`;
+      }
+    }
+
+    function exportarGradeExcel() {
+      let tabela = document.getElementById("tabela-fluxos");
+      let html = tabela.outerHTML;
+      window.open('data:application/vnd.ms-excel,' + encodeURIComponent(html));
+    }
+
+    function formatarMoeda(valor) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor);
+    }
+
+    function exibirErro(msg) {
+      document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="100" class="text-center py-12 text-red-400 font-medium"><i class="fa-solid fa-triangle-exclamation mr-2"></i> ${msg}</td></tr>`;
+    }
+
+    document.querySelectorAll('.status-filter').forEach(checkbox => {
+      checkbox.addEventListener('change', processarPainel);
+    });
+
+    window.onload = carregarDados;
+  </script>
 </body>
 </html>
