@@ -348,6 +348,7 @@
       document.getElementById("syncText").innerText = "Modo Offline / Erro de URL";
     }
   }
+  
   function toggleVisibilidadeUnidades() {
     esconderUnidades = !esconderUnidades;
     const btn = document.getElementById("btnToggleUnidades");
@@ -698,6 +699,18 @@
 
     const u = units.find(x => String(x.id_unidade) === String(id));
 
+    // Formata o fluxo para a estrutura de 6 colunas
+    const fluxoFormatado = (u.fluxo_financeiro || []).map(f => {
+      return {
+        id_fluxo: "FLX-" + Math.floor(Math.random() * 100000),
+        id_unidade: String(u.id_unidade).trim(),
+        data_vencimento: f.data_vencimento,
+        descricao: f.descricao,
+        valor: f.valor,
+        v_total: f.valor
+      };
+    });
+
     const payload = {
       action: "updateUnit",
       id_unidade: String(u.id_unidade),
@@ -705,7 +718,7 @@
       cliente_nome: u.cliente_nome,
       observacoes: u.observacoes || "",
       fase_esteira: String(u.fase_esteira),
-      fluxo_financeiro: u.fluxo_financeiro
+      fluxo_financeiro: fluxoFormatado
     };
 
     try {
@@ -722,7 +735,7 @@
       setTimeout(() => {
         carregarDados();
         alert(`Sucesso! Unidade ${id} enviada para processamento na planilha.`);
-      }, 1000);
+      }, 1500);
 
     } catch (error) {
       console.error(error);
