@@ -18,7 +18,7 @@
   :root {
     --gold: #B8963E; --gold-light: #D4AF5A; --bg: #0F1117; --surface: #16181F;
     --surface2: #1E2028; --border: rgba(255,255,255,0.07); --text: #E2E8F0; --text-muted: #94A3B8;
-    --st-disponivel: #FFFFFF; --st-proposta: #86EFAC; --st-processo: #22C55E; --st-assinado: #15803D; --st-suspensa: #1E293B;
+    --st-disponivel: #FFFFFF; --st-proposta: #86EFAC; --st-reserva: #F59E0B; --st-contrato: #3B82F6; --st-processo: #22C55E; --st-assinado: #15803D; --st-suspensa: #1E293B;
   }
   body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
   
@@ -46,8 +46,8 @@
   .filter-bar { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
   .filter-options { display: flex; align-items: center; gap: 2rem; }
   .filter-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--gold); letter-spacing: 0.5px; }
-  .checkbox-group { display: flex; gap: 1.5rem; align-items: center; }
-  .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; color: #FFF; }
+  .checkbox-group { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
+  .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; color: #FFF; }
   .checkbox-label input { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; }
   .action-group { display: flex; gap: 0.75rem; }
 
@@ -72,6 +72,8 @@
   
   .u-disponivel { border-left: 4px solid var(--st-disponivel); }
   .u-proposta { border-left: 4px solid var(--st-proposta); background: rgba(134,239,172,0.03); }
+  .u-reserva_venda { border-left: 4px solid var(--st-reserva); background: rgba(245,158,11,0.03); }
+  .u-contrato_enviado { border-left: 4px solid var(--st-contrato); background: rgba(59,130,246,0.03); }
   .u-processo { border-left: 4px solid var(--st-processo); background: rgba(34,197,94,0.03); }
   .u-cv_assinado { border-left: 4px solid var(--st-assinado); background: rgba(21,128,61,0.03); }
   .u-suspensa { border-left: 4px solid var(--st-suspensa); opacity: 0.5; }
@@ -85,7 +87,7 @@
   .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
   label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; }
   input, select, textarea { background: var(--surface2); border: 1px solid var(--border); padding: 0.65rem; border-radius: 4px; color: #FFF; font-family: inherit; font-size: 0.9rem; width: 100%; }
-  input:focus, select:focus { border-color: var(--gold); outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold); outline: none; }
   
   .esteira-fluxo { display: flex; gap: 0.25rem; background: var(--surface2); padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border); }
   .step-btn { flex: 1; padding: 0.5rem 0.25rem; font-size: 0.65rem; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 3px; font-weight: 500; text-transform: uppercase; text-align: center; }
@@ -136,14 +138,14 @@
         <div class="kpi-sub"><span id="countAssinado">0 un</span><span>Fechado</span></div>
       </div>
       <div class="kpi-card">
-        <p>VGV em Processo</p>
+        <p>VGV em Processo / Contrato</p>
         <h3 id="kpiVgvProcesso">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countProcesso">0 un</span><span>Mesa Comercial</span></div>
+        <div class="kpi-sub"><span id="countProcesso">0 un</span><span>Backoffice</span></div>
       </div>
       <div class="kpi-card">
-        <p>VGV em Proposta</p>
+        <p>VGV em Proposta / Reserva</p>
         <h3 id="kpiVgvProposta">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countProposta">0 un</span><span>Análise Inicial</span></div>
+        <div class="kpi-sub"><span id="countProposta">0 un</span><span>Mesa Comercial</span></div>
       </div>
       <div class="kpi-card">
         <p>Estoque Disponível</p>
@@ -188,6 +190,14 @@
             <span style="color: #22C55E;">●</span> Processo
           </label>
           <label class="checkbox-label">
+            <input type="checkbox" id="chkContrato" checked onchange="renderFinanceiro()"> 
+            <span style="color: #3B82F6;">●</span> Contrato Enviado
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkReserva" checked onchange="renderFinanceiro()"> 
+            <span style="color: #F59E0B;">●</span> Reserva Venda
+          </label>
+          <label class="checkbox-label">
             <input type="checkbox" id="chkProposta" checked onchange="renderFinanceiro()"> 
             <span style="color: #86EFAC;">●</span> Proposta
           </label>
@@ -215,7 +225,7 @@
 
   let units = [];
   let selectedUnitId = null;
-  let esconderUnidades = false; // Controle global da visão enxuta da tabela
+  let esconderUnidades = false; 
 
   function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -233,17 +243,17 @@
 
   function buildRealJesuinoTree() {
     const list = [];
-    list.push({ id_unidade: "21", andar: 2, final: 1, metragem: 478, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    list.push({ id_unidade: "21", andar: 2, final: 1, metragem: 478, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
     for (let a = 3; a <= 27; a++) {
-      list.push({ id_unidade: `${a}1`, andar: a, final: 1, metragem: 387, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+      list.push({ id_unidade: `${a}1`, andar: a, final: 1, metragem: 387, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
     }
-    list.push({ id_unidade: "281", andar: 28, final: 1, metragem: 609, tipo: "Cobertura", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    list.push({ id_unidade: "281", andar: 28, final: 1, metragem: 609, tipo: "Cobertura", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
 
-    list.push({ id_unidade: "22", andar: 2, final: 2, metragem: 349, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    list.push({ id_unidade: "22", andar: 2, final: 2, metragem: 349, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
     for (let a = 3; a <= 6; a++) {
-      list.push({ id_unidade: `${a}2`, andar: a, final: 2, metragem: 326, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+      list.push({ id_unidade: `${a}2`, andar: a, final: 2, metragem: 326, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
     }
-    list.push({ id_unidade: "72", andar: 7, final: 2, metragem: 545, tipo: "Duplex", status_espelho: "DISPONIVEL", cliente_nome: "", fase_esteira: 1, fluxo_financeiro: [] });
+    list.push({ id_unidade: "72", andar: 7, final: 2, metragem: 545, tipo: "Duplex", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
 
     return list;
   }
@@ -272,6 +282,7 @@
           if (match) {
             u.status_espelho = match.status_espelho || "DISPONIVEL";
             u.cliente_nome = match.cliente_nome || "";
+            u.observacoes = match.observacoes || "";
             u.fase_esteira = parseInt(match.fase_esteira) || 1;
             
             if(match.fluxo_financeiro) {
@@ -303,7 +314,6 @@
     }
   }
 
-  // Alterna entre ver as colunas das unidades ou recolher tudo deixando só o consolidado
   function toggleVisibilidadeUnidades() {
     esconderUnidades = !esconderUnidades;
     const btn = document.getElementById("btnToggleUnidades");
@@ -318,11 +328,15 @@
   function renderFinanceiro() {
     const chkAssinado = document.getElementById("chkAssinado").checked;
     const chkProcesso = document.getElementById("chkProcesso").checked;
+    const chkContrato = document.getElementById("chkContrato").checked;
+    const chkReserva = document.getElementById("chkReserva").checked;
     const chkProposta = document.getElementById("chkProposta").checked;
 
     const unidadesFiltradas = units.filter(u => {
       if (u.status_espelho === "CV_ASSINADO" && chkAssinado) return true;
       if (u.status_espelho === "PROCESSO" && chkProcesso) return true;
+      if (u.status_espelho === "CONTRATO_ENVIADO" && chkContrato) return true;
+      if (u.status_espelho === "RESERVA_VENDA" && chkReserva) return true;
       if (u.status_espelho === "PROPOSTA" && chkProposta) return true;
       return false;
     });
@@ -347,7 +361,6 @@
     let thead = document.createElement("thead");
     let headerRow = `<tr><th style="min-width:120px;">Mês/Ano</th>`;
     
-    // Injeta estilo oculto caso o botão esteja acionado
     let displayStyle = esconderUnidades ? 'class="hide-unit-col"' : '';
 
     unidadesFiltradas.forEach(u => {
@@ -393,11 +406,8 @@
     tabela.appendChild(tbody);
   }
 
-  // EXPORTAR FLUXO COMPLETO PARA EXCEL
   function exportarFluxoExcel() {
     const table = document.getElementById("tabelaFluxoCompilado");
-    
-    // Clonamos temporariamente para garantir que as colunas ocultas apareçam no Excel se o usuário baixá-lo
     let tempTable = table.cloneNode(true);
     tempTable.querySelectorAll('.hide-unit-col').forEach(el => el.classList.remove('hide-unit-col'));
 
@@ -405,7 +415,6 @@
     XLSX.writeFile(wb, `Fluxo_Financeiro_Quaddra_Jesuino.xlsx`);
   }
 
-  // EXPORTAR ESPELHO COMO IMAGEM (PNG)
   function exportarEspelhoImagem() {
     const area = document.getElementById("captureArea");
     html2canvas(area, {
@@ -456,11 +465,13 @@
     box.className = `unit-box u-${u.status_espelho.toLowerCase()} ${u.id_unidade === selectedUnitId ? 'selected' : ''}`;
     box.onclick = () => selectUnit(u.id_unidade);
 
+    let displayStatusName = u.status_espelho.replace("_", " ");
+
     box.innerHTML = `
       <div class="unit-name">Ap ${u.id_unidade}</div>
       <div class="unit-meta">
         <span>${u.metragem}m²</span>
-        <strong style="color:${getStatusColor(u.status_espelho)}">${u.status_espelho}</strong>
+        <strong style="color:${getStatusColor(u.status_espelho)}; font-size:0.65rem;">${displayStatusName}</strong>
       </div>
     `;
     return box;
@@ -468,6 +479,8 @@
 
   function getStatusColor(st) {
     if (st === "PROPOSTA") return "#86EFAC";
+    if (st === "RESERVA_VENDA") return "#F59E0B";
+    if (st === "CONTRATO_ENVIADO") return "#3B82F6";
     if (st === "PROCESSO") return "#22C55E";
     if (st === "CV_ASSINADO") return "#15803D";
     if (st === "SUSPENSA") return "#EF4444";
@@ -476,7 +489,7 @@
 
   function renderKPIs() {
     let vgvAssinado = 0, vgvProcesso = 0, vgvProposta = 0;
-    let cAssinado = 0, cProcesso = 0, cProposta = 0, cSuspensa = 0, cDisponivel = 0;
+    let cAssinado = 0, cProcesso = 0, cContrato = 0, cReserva = 0, cProposta = 0, cSuspensa = 0, cDisponivel = 0;
 
     units.forEach(u => {
       const totalUnidade = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
@@ -484,12 +497,14 @@
       if (u.status_espelho === "CV_ASSINADO") {
         vgvAssinado += totalUnidade;
         cAssinado++;
-      } else if (u.status_espelho === "PROCESSO") {
+      } else if (u.status_espelho === "PROCESSO" || u.status_espelho === "CONTRATO_ENVIADO") {
         vgvProcesso += totalUnidade;
-        cProcesso++;
-      } else if (u.status_espelho === "PROPOSTA") {
+        if(u.status_espelho === "PROCESSO") cProcesso++;
+        if(u.status_espelho === "CONTRATO_ENVIADO") cContrato++;
+      } else if (u.status_espelho === "PROPOSTA" || u.status_espelho === "RESERVA_VENDA") {
         vgvProposta += totalUnidade;
-        cProposta++;
+        if(u.status_espelho === "PROPOSTA") cProposta++;
+        if(u.status_espelho === "RESERVA_VENDA") cReserva++;
       } else if (u.status_espelho === "SUSPENSA") {
         cSuspensa++;
       } else {
@@ -503,8 +518,8 @@
     document.getElementById("kpiDisponivel").innerText = `${cDisponivel} un`;
 
     document.getElementById("countAssinado").innerText = `${cAssinado} un`;
-    document.getElementById("countProcesso").innerText = `${cProcesso} un`;
-    document.getElementById("countProposta").innerText = `${cProposta} un`;
+    document.getElementById("countProcesso").innerText = `${cProcesso + cContrato} un no backoffice`;
+    document.getElementById("countProposta").innerText = `${cProposta + cReserva} un em negociação`;
     document.getElementById("countSuspensa").innerText = `${cSuspensa} un suspensas`;
   }
 
@@ -537,6 +552,8 @@
           <select id="editStatus" onchange="window.updateStatusLocal(this.value)">
             <option value="DISPONIVEL" ${u.status_espelho === "DISPONIVEL" ? "selected" : ""}>DISPONÍVEL</option>
             <option value="PROPOSTA" ${u.status_espelho === "PROPOSTA" ? "selected" : ""}>PROPOSTA EM ANÁLISE</option>
+            <option value="RESERVA_VENDA" ${u.status_espelho === "RESERVA_VENDA" ? "selected" : ""}>RESERVA VENDA</option>
+            <option value="CONTRATO_ENVIADO" ${u.status_espelho === "CONTRATO_ENVIADO" ? "selected" : ""}>CONTRATO ENVIADO</option>
             <option value="PROCESSO" ${u.status_espelho === "PROCESSO" ? "selected" : ""}>EM PROCESSO COMERCIAL</option>
             <option value="CV_ASSINADO" ${u.status_espelho === "CV_ASSINADO" ? "selected" : ""}>CV ASSINADO</option>
             <option value="SUSPENSA" ${u.status_espelho === "SUSPENSA" ? "selected" : ""}>SUSPENSA / BLOQUEADA</option>
@@ -546,6 +563,11 @@
         <div class="form-group">
           <label>Nome do Cliente</label>
           <input type="text" id="editCliente" value="${u.cliente_nome || ''}" onchange="window.updateClienteLocal(this.value)" placeholder="Nome do proponente">
+        </div>
+
+        <div class="form-group">
+          <label>Observações da Unidade</label>
+          <textarea id="editObservacoes" rows="3" onchange="window.updateObservacoesLocal(this.value)" placeholder="Histórico de negociação, observações de fluxos ou permutas...">${u.observacoes || ''}</textarea>
         </div>
 
         <div class="form-group">
@@ -602,6 +624,8 @@
   window.updateStatusLocal = function(val) {
     const u = units.find(x => x.id_unidade === selectedUnitId);
     u.status_espelho = val;
+    if(val === "RESERVA_VENDA") u.fase_esteira = 1;
+    if(val === "CONTRATO_ENVIADO") u.fase_esteira = 4;
     if(val === "PROCESSO") u.fase_esteira = 2;
     if(val === "CV_ASSINADO") u.fase_esteira = 5;
     renderKPIs();
@@ -611,6 +635,11 @@
   window.updateClienteLocal = function(val) {
     const u = units.find(x => x.id_unidade === selectedUnitId);
     u.cliente_nome = val;
+  }
+
+  window.updateObservacoesLocal = function(val) {
+    const u = units.find(x => x.id_unidade === selectedUnitId);
+    u.observacoes = val;
   }
 
   window.setFaseLocal = function(fase) {
@@ -653,6 +682,7 @@
       id_unidade: String(u.id_unidade),
       status_espelho: u.status_espelho,
       cliente_nome: u.cliente_nome,
+      observacoes: u.observacoes,
       fase_esteira: String(u.fase_esteira),
       fluxo_financeiro: u.fluxo_financeiro
     };
