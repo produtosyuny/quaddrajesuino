@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
 
-<!-- Bibliotecas para Exportar Imagem e Excel sem precisar de backend -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -128,7 +127,6 @@
   </div>
 </header>
 
-<!-- ABA 1: ESPELHO DE VENDAS -->
 <div id="tab-espelho" class="tab-content active">
   <div class="panel-left">
     <div class="kpis-grid">
@@ -149,7 +147,7 @@
       </div>
       <div class="kpi-card">
         <p>Estoque Disponível</p>
-        <h3 id="kpiDisponivel">33 un</h3>
+        <h3 id="kpiDisponivel">0 un</h3>
         <div class="kpi-sub"><span id="countSuspensa">0 un</span></div>
       </div>
     </div>
@@ -173,7 +171,6 @@
   </div>
 </div>
 
-<!-- ABA 2: CONTROLE FINANCEIRO -->
 <div id="tab-financeiro" class="tab-content">
   <div class="panel-financeiro">
     
@@ -221,6 +218,7 @@
 </div>
 
 <script>
+  // ATENÇÃO: COLOQUE SUA NOVA URL DE IMPLANTAÇÃO DA PLANILHA AQUI ABAIXO
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec";
 
   let units = [];
@@ -260,15 +258,28 @@
 
   function tratarFormatoData(dataS) {
     if(!dataS) return "";
-    if(dataS.includes("T")) {
-      let pedaco = dataS.split("T")[0];
-      let partes = pedaco.split("-");
-      return `${partes[1]}/${partes[0]}`;
+    let s = String(dataS).trim();
+    if(s.includes("T")) {
+      s = s.split("T")[0];
     }
-    return dataS;
+    if(s.includes("-")) {
+      let partes = s.split("-");
+      if(partes[0].length === 4) {
+        return `${partes[1]}/${partes[0]}`;
+      }
+    }
+    return s;
   }
 
   async function carregarDados() {
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec")) {
+      console.warn("URL da planilha não configurada. Executando em árvore local vazia.");
+      units = buildRealJesuinoTree();
+      renderEspelho();
+      renderKPIs();
+      return;
+    }
+
     try {
       const response = await fetch(GOOGLE_SCRIPT_URL);
       const result = await response.json();
@@ -285,9 +296,10 @@
             u.observacoes = match.observacoes || "";
             u.fase_esteira = parseInt(match.fase_esteira) || 1;
             
-            if(match.fluxo_financeiro) {
+            if(match.fluxo_financeiro && Array.isArray(match.fluxo_financeiro)) {
               u.fluxo_financeiro = match.fluxo_financeiro.map(f => {
                 f.data_vencimento = tratarFormatoData(f.data_vencimento);
+                f.valor = parseFloat(f.valor) || 0;
                 return f;
               });
             } else {
@@ -308,20 +320,16 @@
         renderGaveta(selectedUnitId);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao carregar dados do Sheets:", error);
       document.getElementById("syncDot").className = "sync-dot";
-      document.getElementById("syncText").innerText = "Modo Offline";
+      document.getElementById("syncText").innerText = "Modo Offline / Erro de URL";
     }
   }
 
   function toggleVisibilidadeUnidades() {
     esconderUnidades = !esconderUnidades;
     const btn = document.getElementById("btnToggleUnidades");
-    if(esconderUnidades) {
-      btn.innerHTML = `<i class="ti ti-eye"></i> Mostrar Unidades`;
-    } else {
-      btn.innerHTML = `<i class="ti ti-eye-off"></i> Esconder Unidades`;
-    }
+    btn.innerHTML = esconderUnidades ? `<i class="ti ti-eye"></i> Mostrar Unidades` : `<i class="ti ti-eye-off"></i> Esconder Unidades`;
     renderFinanceiro();
   }
 
@@ -352,7 +360,10 @@
 
     todosMeses.sort((a, b) => {
       let pA = a.split("/"), pB = b.split("/");
-      return new Date(pA[1], pA[0]-1) - new Date(pB[1], pB[0]-1);
+      if(pA.length === 2 && pB.length === 2) {
+        return new Date(pA[1], pA[0]-1) - new Date(pB[1], pB[0]-1);
+      }
+      return 0;
     });
 
     const tabela = document.getElementById("tabelaFluxoCompilado");
@@ -360,7 +371,6 @@
 
     let thead = document.createElement("thead");
     let headerRow = `<tr><th style="min-width:120px;">Mês/Ano</th>`;
-    
     let displayStyle = esconderUnidades ? 'class="hide-unit-col"' : '';
 
     unidadesFiltradas.forEach(u => {
@@ -392,7 +402,6 @@
       });
 
       acumuladorVGV += totalDoMes;
-
       rowHTML += `<td style="text-align:right; font-weight:600; color:var(--gold); background:rgba(184,150,62,0.02);">${totalDoMes.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td>`;
       rowHTML += `<td style="text-align:right; font-weight:600; color:#22C55E; background:rgba(34,197,94,0.02);">${acumuladorVGV.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td></tr>`;
       
@@ -400,9 +409,8 @@
     });
 
     if(todosMeses.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:3rem; color:var(--text-muted);">Nenhum fluxo financeiro encontrado.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:3rem; color:var(--text-muted);">Nenhum fluxo financeiro encontrado para os status selecionados.</td></tr>`;
     }
-
     tabela.appendChild(tbody);
   }
 
@@ -410,18 +418,13 @@
     const table = document.getElementById("tabelaFluxoCompilado");
     let tempTable = table.cloneNode(true);
     tempTable.querySelectorAll('.hide-unit-col').forEach(el => el.classList.remove('hide-unit-col'));
-
     const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Fluxo Mensal" });
     XLSX.writeFile(wb, `Fluxo_Financeiro_Quaddra_Jesuino.xlsx`);
   }
 
   function exportarEspelhoImagem() {
     const area = document.getElementById("captureArea");
-    html2canvas(area, {
-      backgroundColor: "#16181F",
-      logging: false,
-      scale: 2
-    }).then(canvas => {
+    html2canvas(area, { backgroundColor: "#16181F", logging: false, scale: 2 }).then(canvas => {
       let link = document.createElement('a');
       link.download = `Espelho_Quaddra_Jesuino.png`;
       link.href = canvas.toDataURL();
@@ -462,7 +465,7 @@
       return box;
     }
 
-    box.className = `unit-box u-${u.status_espelho.toLowerCase()} ${u.id_unidade === selectedUnitId ? 'selected' : ''}`;
+    box.className = `unit-box u-${u.status_espelho.toLowerCase()} ${String(u.id_unidade) === String(selectedUnitId) ? 'selected' : ''}`;
     box.onclick = () => selectUnit(u.id_unidade);
 
     box.innerHTML = `
@@ -526,7 +529,7 @@
   }
 
   function renderGaveta(id) {
-    const u = units.find(x => x.id_unidade === id);
+    const u = units.find(x => String(x.id_unidade) === String(id));
     const rightPanel = document.getElementById("painelDireto");
     let totalAtual = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
 
@@ -618,7 +621,7 @@
   }
 
   window.updateStatusLocal = function(val) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
+    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
     u.status_espelho = val;
     if(val === "PROCESSO") u.fase_esteira = 2;
     if(val === "RESERVA_VENDA") u.fase_esteira = 3;
@@ -629,30 +632,30 @@
   }
 
   window.updateClienteLocal = function(val) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
+    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
     u.cliente_nome = val;
   }
 
   window.updateObservacoesLocal = function(val) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
+    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
     u.observacoes = val;
   }
 
   window.setFaseLocal = function(fase) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
+    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
     u.fase_esteira = fase;
     renderGaveta(selectedUnitId);
   }
 
   window.updateFluxoRow = function(index, field, value) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
+    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
     u.fluxo_financeiro[index][field] = value;
     renderKPIs();
     if(field === 'valor') { renderGaveta(selectedUnitId); }
   }
 
   window.addLinhaFluxo = function() {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
+    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
     let dataAtual = new Date();
     let formatada = String(dataAtual.getMonth() + 1).padStart(2, '0') + "/" + dataAtual.getFullYear();
     u.fluxo_financeiro.push({ data_vencimento: formatada, descricao: "", valor: 0 });
@@ -660,7 +663,7 @@
   }
 
   window.deleteFluxoRow = function(index) {
-    const u = units.find(x => x.id_unidade === selectedUnitId);
+    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
     u.fluxo_financeiro.splice(index, 1);
     renderGaveta(selectedUnitId);
     renderKPIs();
@@ -671,7 +674,7 @@
     btn.innerText = "A guardar...";
     btn.disabled = true;
 
-    const u = units.find(x => x.id_unidade === id);
+    const u = units.find(x => String(x.id_unidade) === String(id));
 
     const payload = {
       action: "updateUnit",
@@ -701,7 +704,7 @@
 
     } catch (error) {
       console.error(error);
-      alert("Erro na conexão.");
+      alert("Erro na conexão ao salvar.");
       carregarDados();
     }
   };
