@@ -272,7 +272,8 @@
   }
 
   async function carregarDados() {
-    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec")) {
+  // CORREÇÃO AQUI: Agora ele só barra se a URL for o texto padrão de exemplo
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SUA_NOVA_URL_AQUI")) {
       console.warn("URL da planilha não configurada. Executando em árvore local vazia.");
       units = buildRealJesuinoTree();
       renderEspelho();
