@@ -272,7 +272,6 @@
   }
 
   async function carregarDados() {
-  // CORREÇÃO AQUI: Agora ele só barra se a URL for o texto padrão de exemplo
     if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SUA_NOVA_URL_AQUI")) {
       console.warn("URL da planilha não configurada. Executando em árvore local vazia.");
       units = buildRealJesuinoTree();
@@ -297,11 +296,15 @@
             u.observacoes = match.observacoes || "";
             u.fase_esteira = parseInt(match.fase_esteira) || 1;
             
-            if(match.fluxo_financeiro && Array.isArray(match.fluxo_financeiro)) {
-              u.fluxo_financeiro = match.fluxo_financeiro.map(f => {
-                f.data_vencimento = tratarFormatoData(f.data_vencimento);
-                f.valor = parseFloat(f.valor) || 0;
-                return f;
+            // GARANTIA: Trata tanto 'fluxo_financeiro' quanto 'fluxo' se vier da planilha
+            let fluxoBruto = match.fluxo_financeiro || match.fluxo || [];
+            if(Array.isArray(fluxoBruto)) {
+              u.fluxo_financeiro = fluxoBruto.map(f => {
+                return {
+                  data_vencimento: tratarFormatoData(f.data_vencimento || f.mes_ano),
+                  descricao: f.descricao || f.condicao || "",
+                  valor: parseFloat(f.valor) || 0
+                };
               });
             } else {
               u.fluxo_financeiro = [];
@@ -316,6 +319,7 @@
       units = localTree;
       renderEspelho();
       renderKPIs();
+      renderFinanceiro(); // Força a renderização da aba financeira com os novos dados
       
       if (selectedUnitId) {
         renderGaveta(selectedUnitId);
@@ -326,7 +330,6 @@
       document.getElementById("syncText").innerText = "Modo Offline / Erro de URL";
     }
   }
-
   function toggleVisibilidadeUnidades() {
     esconderUnidades = !esconderUnidades;
     const btn = document.getElementById("btnToggleUnidades");
