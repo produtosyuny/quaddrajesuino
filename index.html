@@ -257,17 +257,35 @@
   }
 
   function tratarFormatoData(dataS) {
-    if(!dataS) return "";
+    if (!dataS) return "";
     let s = String(dataS).trim();
-    if(s.includes("T")) {
+
+    // 1. Se for a string longa padrão do Google (ex: "Mon Jun 01 2026...")
+    if (s.length > 15 && (s.includes("GMT") || s.includes("Mon") || s.includes("Tue") || s.includes("Wed") || s.includes("Thu") || s.includes("Fri") || s.includes("Sat") || s.includes("Sun"))) {
+      try {
+        let d = new Date(s);
+        if (!isNaN(d.getTime())) {
+          let mes = String(d.getMonth() + 1).padStart(2, '0');
+          let ano = d.getFullYear();
+          return `${mes}/${ano}`;
+        }
+      } catch (e) {
+        console.error("Erro ao converter data por extenso:", e);
+      }
+    }
+
+    // 2. Se vier no formato ISO (ex: "2026-06-01T00:00:00")
+    if (s.includes("T")) {
       s = s.split("T")[0];
     }
-    if(s.includes("-")) {
+    if (s.includes("-")) {
       let partes = s.split("-");
-      if(partes[0].length === 4) {
+      if (partes[0].length === 4) {
         return `${partes[1]}/${partes[0]}`;
       }
     }
+
+    // 3. Se já for formato correto texto (ex: "07/2030"), retorna direto
     return s;
   }
 
