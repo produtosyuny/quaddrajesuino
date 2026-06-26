@@ -149,9 +149,9 @@
         <div class="kpi-sub"><span id="countAssinado">0 un</span><span>Fechado</span></div>
       </div>
       <div class="kpi-card">
-        <p>VGV Operacional</p>
+        <p>VGV Em Processo</p>
         <h3 id="kpiVgvProcesso">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countProcesso">0 un</span><span>Mesa Comercial</span></div>
+        <div class="kpi-sub"><span id="countProcesso">0 un</span><span>Processo + Contrato</span></div>
       </div>
       <div class="kpi-card">
         <p>VGV em Proposta</p>
@@ -534,7 +534,7 @@
       if (u.status_espelho === "CV_ASSINADO") {
         vgvAssinado += totalUnidade;
         cAssinado++;
-      } else if (["PROCESSO", "RESERVA_VENDA", "CONTRATO_ENVIADO"].includes(u.status_espelho)) {
+      } else if (["PROCESSO", "CONTRATO_ENVIADO"].includes(u.status_espelho)) {
         vgvProcesso += totalUnidade;
         cProcesso++;
       } else if (u.status_espelho === "PROPOSTA") {
