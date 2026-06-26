@@ -136,7 +136,7 @@
   </div>
   <div class="sync-status">
     <div id="syncDot" class="sync-dot"></div>
-    <span id="syncText">A carregar dados do Sheets...</span>
+    <span id="syncText">Atualizando dados...</span>
   </div>
 </header>
 
@@ -356,7 +356,7 @@
         renderGaveta(selectedUnitId);
       }
     } catch (error) {
-      console.error("Erro ao carregar dados do Sheets:", error);
+      console.error("Erro ao carregar dados:", error);
       document.getElementById("syncDot").className = "sync-dot";
       document.getElementById("syncText").innerText = "Modo Offline / Erro de URL";
     }
