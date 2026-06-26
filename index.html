@@ -736,7 +736,7 @@
 
     try {
       document.getElementById("syncDot").className = "sync-dot";
-      document.getElementById("syncText").innerText = "A enviar dados para o Sheets...";
+      document.getElementById("syncText").innerText = "Enviando dados...";
 
       await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
