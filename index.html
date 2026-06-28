@@ -8,167 +8,353 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    /* Identidade Oficial Yuny */
-    --carvao: #141414;
-    --offwhite: #E4E3DE;
-    --bege: #C7B299;
-    --azul: #00B0B9;
-    
-    --bg: var(--carvao);
-    --surface: #1A1A1A;
-    --surface2: #242424;
-    --border: rgba(228, 227, 222, 0.15);
-    --text: var(--offwhite);
-    --text-muted: rgba(228, 227, 222, 0.6);
-    
-    /* Status da esteira adaptados para paleta funcional */
-    --st-disponivel: var(--offwhite); --st-proposta: #86EFAC; --st-processo: #22C55E; --st-reserva: #F59E0B; --st-contrato: var(--azul); --st-assinado: #15803D; --st-suspensa: #333333;
-  }
 
-  body { font-family: 'Arial', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-  
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-  .logo-title { display: flex; align-items: center; gap: 1rem; }
-  .logo-title h1 { font-size: 1.25rem; font-weight: 500; letter-spacing: 1px; color: var(--offwhite); text-transform: uppercase; }
-  .logo-title span { color: var(--bege); font-size: 0.85rem; background: rgba(199, 178, 153, 0.1); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid rgba(199, 178, 153, 0.2); }
-  
-  .nav-tabs { display: flex; gap: 1rem; margin-left: 2rem; }
-  .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
-  .tab-btn:hover { color: var(--offwhite); background: rgba(228, 227, 222, 0.05); }
-  .tab-btn.active { color: var(--bege); background: rgba(199, 178, 153, 0.1); border: 1px solid rgba(199, 178, 153, 0.2); }
+:root {
+  /* Identidade Yuny */
+  --carvao:   #141414;
+  --offwhite: #E4E3DE;
+  --bege:     #C7B299;
+  --bege-dk:  #7A6448;   /* variante escura p/ texto sobre fundo claro (mantém contraste) */
+  --azul:     #00B0B9;   /* teal Yuny (barra do SharePoint/logo) */
+  --azul-dk:  #03787C;   /* teal escuro (faixa "Intranet") */
 
-  .sync-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
-  .sync-dot { width: 8px; height: 8px; background: #EF4444; border-radius: 50%; }
-  .sync-dot.online { background: var(--azul); box-shadow: 0 0 8px var(--azul); }
-  
-  .tab-content { flex: 1; display: none; overflow: hidden; }
-  .tab-content.active { display: flex; }
-  
-  .panel-left { flex: 1.2; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; border-right: 1px solid var(--border); }
-  .panel-right { flex: 0.8; background: var(--surface); overflow-y: auto; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-  
-  .panel-financeiro { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
-  .filter-bar { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
-  .filter-options { display: flex; align-items: center; gap: 1.5rem; }
-  .filter-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--bege); letter-spacing: 0.5px; }
-  .checkbox-group { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
-  .checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--offwhite); }
-  .checkbox-label input { width: 15px; height: 15px; accent-color: var(--bege); cursor: pointer; }
-  .action-group { display: flex; gap: 0.75rem; }
+  --bg:       #F3F6F6;
+  --surface:  #FFFFFF;
+  --surface2: #EFF4F4;
+  --surface3: #B9C7C7;
+  --border:   rgba(15,23,23,0.08);
+  --border2:  rgba(15,23,23,0.15);
+  --text:     var(--carvao);
+  --text-muted: rgba(15,23,23,0.55);
+  --gold:     #C7B299;   /* alias explícito para evitar bug */
 
-  .table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; padding: 1rem; }
-  
-  .kpis-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-  .kpi-card { background: var(--surface); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; display: flex; flex-direction: column; justify-content: space-between; min-height: 90px; }
-  .kpi-card p { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; font-weight: 500; letter-spacing: 0.5px; }
-  .kpi-card h3 { font-size: 1.15rem; font-weight: 600; color: var(--offwhite); margin-bottom: 0.15rem; }
-  .kpi-sub { font-size: 0.75rem; color: var(--bege); font-weight: 500; display: flex; justify-content: space-between; }
-  
-  .espelho-container { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; position: relative; }
-  .espelho-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
-  .grid-predio { display: flex; flex-direction: column-reverse; gap: 0.5rem; max-width: 500px; margin: 0 auto; padding: 1rem; background: var(--surface); }
-  .andar-row { display: flex; gap: 0.5rem; align-items: center; }
-  .label-andar { width: 40px; font-size: 0.75rem; color: var(--text-muted); text-align: right; }
-  .unit-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); padding: 0.75rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; position: relative; }
-  .unit-box:hover { border-color: var(--bege); transform: translateY(-1px); }
-  .unit-box.selected { border-color: var(--bege); box-shadow: 0 0 12px rgba(199, 178, 153, 0.2); }
-  .unit-name { font-size: 0.95rem; font-weight: 600; color: var(--offwhite); margin-bottom: 0.15rem; }
-  .unit-meta { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
-  
-  .u-disponivel { border-left: 4px solid var(--st-disponivel); }
-  .u-proposta { border-left: 4px solid var(--st-proposta); background: rgba(134,239,172,0.03); }
-  .u-processo { border-left: 4px solid var(--st-processo); background: rgba(34,197,94,0.03); }
-  .u-reserva_venda { border-left: 4px solid var(--st-reserva); background: rgba(245,158,11,0.03); }
-  .u-contrato_enviado { border-left: 4px solid var(--st-contrato); background: rgba(0, 176, 185, 0.05); }
-  .u-cv_assinado { border-left: 4px solid var(--st-assinado); background: rgba(21,128,61,0.03); }
-  .u-suspensa { border-left: 4px solid var(--st-suspensa); opacity: 0.5; }
-  
-  .painel-vazio { padding: 3rem; text-align: center; color: var(--text-muted); margin: auto; }
-  .painel-vazio i { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
-  .editor-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .editor-header h2 { font-size: 1.2rem; color: var(--offwhite); }
-  .editor-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; flex: 1; }
-  
-  .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-  label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; }
-  input, select, textarea { background: var(--surface2); border: 1px solid var(--border); padding: 0.65rem; border-radius: 4px; color: var(--offwhite); font-family: inherit; font-size: 0.9rem; width: 100%; }
-  input:focus, select:focus, textarea:focus { border-color: var(--bege); outline: none; }
-  textarea { resize: vertical; min-height: 70px; }
-  
-  .esteira-fluxo { display: flex; gap: 0.25rem; background: var(--surface2); padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border); }
-  .step-btn { flex: 1; padding: 0.5rem 0.25rem; font-size: 0.65rem; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 3px; font-weight: 500; text-transform: uppercase; text-align: center; }
-  .step-btn.active { background: var(--bege); color: var(--carvao); font-weight: 600; }
-  
-  .fin-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-  .fin-table th { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; padding: 0.65rem; text-align: left; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.01); }
-  .fin-table td { padding: 0.65rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; }
-  .fin-table input { padding: 0.4rem; font-size: 0.85rem; width: 100%; }
-  
-  .hide-unit-col { display: none !important; }
-  
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.65rem 1.25rem; font-size: 0.85rem; font-weight: 500; border-radius: 4px; cursor: pointer; transition: background 0.2s; border: none; }
-  .btn-gold { background: var(--bege); color: var(--carvao); font-weight: 600; }
-  .btn-gold:hover { background: #B39F88; }
-  .btn-sec { background: var(--surface2); border: 1px solid var(--border); color: var(--offwhite); width: auto; }
-  .btn-danger { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); width: auto; }
-  
-  .editor-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: var(--surface2); display: flex; justify-content: flex-end; gap: 1rem; }
+  /* Status — cores de borda lateral */
+  --st-disponivel:       #9CA3AF;
+  --st-proposta:         #4ADE80;
+  --st-processo:         #22C55E;
+  --st-reserva_venda:    #F59E0B;
+  --st-contrato_enviado: #3B82F6;
+  --st-cv_assinado:      #15803D;
+  --st-suspensa:         #6B7280;
+}
+
+/* ── RESET & BASE ── */
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+/* ── HEADER ── */
+header {
+  background: var(--azul);
+  border-bottom: 1px solid var(--azul-dk);
+  padding: 0 1.5rem;
+  height: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 1rem;
+}
+.header-left { display: flex; align-items: center; gap: 1.5rem; }
+.logo-title { display: flex; align-items: baseline; gap: 0.75rem; }
+.logo-title h1 { font-size: 1rem; font-weight: 600; letter-spacing: 0.12em; color: #FFFFFF; text-transform: uppercase; }
+.logo-badge { font-size: 0.72rem; color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.16); padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.25); letter-spacing: 0.08em; }
+
+.nav-tabs { display: flex; gap: 0.25rem; }
+.tab-btn { background: transparent; border: none; color: rgba(255,255,255,0.75); padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 500; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; gap: 0.4rem; font-family: inherit; }
+.tab-btn:hover { color: #FFFFFF; background: rgba(255,255,255,0.12); }
+.tab-btn.active { color: var(--azul-dk); background: #FFFFFF; border: 1px solid transparent; }
+
+.header-right { display: flex; align-items: center; gap: 0.75rem; }
+.sync-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: rgba(255,255,255,0.85); cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 4px; transition: background 0.2s; }
+.sync-status:hover { background: rgba(255,255,255,0.14); }
+.sync-dot { width: 7px; height: 7px; background: #EF4444; border-radius: 50%; transition: all 0.3s; }
+.sync-dot.online { background: #4ADE80; box-shadow: 0 0 8px rgba(74,222,128,0.6); }
+.sync-dot.loading { background: var(--bege); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── TOAST ── */
+#toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+.toast { padding: 0.75rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: auto; display: flex; align-items: center; gap: 0.5rem; max-width: 320px; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #052E16; border: 1px solid #15803D; color: #4ADE80; }
+.toast.error   { background: #450A0A; border: 1px solid #DC2626; color: #FCA5A5; }
+.toast.info    { background: #0C2340; border: 1px solid #3B82F6; color: #93C5FD; }
+
+/* ── TABS ── */
+.tab-content { flex: 1; display: none; overflow: hidden; }
+.tab-content.active { display: flex; }
+
+/* ── ESPELHO TAB ── */
+.panel-left  { flex: 1.2; padding: 1.25rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; border-right: 1px solid var(--border); }
+.panel-right { flex: 0.8; background: var(--surface); overflow-y: auto; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
+
+/* ── SEARCH BAR ── */
+.search-bar { position: relative; }
+.search-bar input { background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; padding: 0.55rem 1rem 0.55rem 2.25rem; font-size: 0.85rem; color: var(--text); width: 100%; font-family: inherit; transition: border-color 0.2s; }
+.search-bar input:focus { border-color: var(--azul); outline: none; }
+.search-bar input::placeholder { color: var(--text-muted); }
+.search-bar i { position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1rem; pointer-events: none; }
+
+/* ── KPIs ── */
+.kpis-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); padding: 0.85rem 1rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.2rem; min-height: 80px; cursor: pointer; transition: border-color 0.2s, background 0.2s, transform 0.15s; user-select: none; position: relative; }
+.kpi-card:hover { border-color: var(--border2); background: var(--surface2); transform: translateY(-1px); }
+.kpi-card.kpi-active { border-color: var(--azul); background: rgba(0,176,185,0.06); }
+.kpi-card.kpi-active::after { content: '✕ limpar'; position: absolute; top: 0.4rem; right: 0.6rem; font-size: 0.6rem; color: var(--azul-dk); opacity: 0.8; letter-spacing: 0.05em; }
+.kpi-card p { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.05em; }
+.kpi-card h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+.kpi-sub { font-size: 0.72rem; color: var(--bege-dk); font-weight: 500; display: flex; justify-content: space-between; margin-top: 0.1rem; }
+
+/* ── ESPELHO ── */
+.espelho-container { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; }
+.espelho-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; }
+.espelho-top-left { display: flex; flex-direction: column; gap: 0.25rem; }
+.espelho-title { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; color: var(--bege-dk); text-transform: uppercase; }
+
+/* Legenda */
+.legenda { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+.legenda-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: var(--text-muted); }
+.legenda-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+.grid-predio { display: flex; flex-direction: column-reverse; gap: 0.4rem; max-width: 520px; margin: 0 auto; padding: 0.5rem; }
+.andar-row { display: flex; gap: 0.4rem; align-items: center; }
+.label-andar { width: 36px; font-size: 0.7rem; color: var(--text-muted); text-align: right; flex-shrink: 0; }
+
+.unit-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); padding: 0.65rem 0.75rem; border-radius: 4px; cursor: pointer; transition: border-color 0.15s, transform 0.15s; position: relative; min-width: 0; }
+.unit-box:hover { border-color: var(--azul); transform: translateY(-1px); }
+.unit-box.selected { border-color: var(--azul) !important; box-shadow: 0 0 14px rgba(0,176,185,0.18); }
+.unit-box.hidden-search { opacity: 0.18; pointer-events: none; }
+
+.unit-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.unit-meta { font-size: 0.68rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 0.15rem; align-items: center; }
+.unit-fase-badge { font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; background: rgba(199,178,153,0.18); color: var(--bege-dk); font-weight: 600; flex-shrink: 0; }
+
+/* Status border-left */
+.u-disponivel       { border-left: 3px solid var(--st-disponivel); }
+.u-proposta         { border-left: 3px solid var(--st-proposta);         background: rgba(134,239,172,0.03); }
+.u-processo         { border-left: 3px solid var(--st-processo);         background: rgba(34,197,94,0.03); }
+.u-reserva_venda    { border-left: 3px solid var(--st-reserva_venda);    background: rgba(245,158,11,0.03); }
+.u-contrato_enviado { border-left: 3px solid var(--st-contrato_enviado); background: rgba(59,130,246,0.04); }
+.u-cv_assinado      { border-left: 3px solid var(--st-cv_assinado);      background: rgba(21,128,61,0.05); }
+.u-suspensa         { border-left: 3px solid var(--st-suspensa); opacity: 0.45; }
+
+/* ── GAVETA (PAINEL DIREITO) ── */
+.painel-vazio { padding: 3rem 2rem; text-align: center; color: var(--text-muted); margin: auto; }
+.painel-vazio i { font-size: 2.5rem; margin-bottom: 1rem; display: block; opacity: 0.4; }
+.painel-vazio p { font-size: 0.85rem; line-height: 1.6; }
+
+.editor-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
+.editor-header h2 { font-size: 1.1rem; color: var(--text); font-weight: 600; }
+.editor-header p { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+.editor-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; overflow-y: auto; }
+.editor-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: var(--surface2); display: flex; justify-content: flex-end; gap: 0.75rem; flex-shrink: 0; }
+
+/* ── FORMS ── */
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+label { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+input, select, textarea { background: var(--surface2); border: 1px solid var(--border2); padding: 0.6rem 0.75rem; border-radius: 4px; color: var(--text); font-family: inherit; font-size: 0.88rem; width: 100%; transition: border-color 0.2s; }
+input:focus, select:focus, textarea:focus { border-color: var(--azul); outline: none; }
+select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
+select option { background: var(--surface2); }
+textarea { resize: vertical; min-height: 65px; }
+
+/* ── ESTEIRA ── */
+.esteira-wrap { display: flex; flex-direction: column; gap: 0.4rem; }
+.step-btn-v { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.75rem; border: 1px solid var(--border); background: var(--surface2); border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.8rem; color: var(--text-muted); transition: all 0.2s; text-align: left; width: 100%; }
+.step-btn-v:hover { border-color: var(--border2); color: var(--text); }
+.step-btn-v.active { background: rgba(199,178,153,0.15); border-color: rgba(199,178,153,0.4); color: var(--bege-dk); font-weight: 600; }
+.step-btn-v.done { opacity: 0.5; }
+.step-num { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; flex-shrink: 0; }
+.step-btn-v.active .step-num { background: var(--bege); border-color: var(--bege); color: var(--carvao); }
+.step-btn-v.done .step-num { background: #052E16; border-color: #15803D; color: #4ADE80; }
+
+/* ── FLUXO TABLE ── */
+.fin-table { width: 100%; border-collapse: collapse; }
+.fin-table th { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; letter-spacing: 0.05em; }
+.fin-table td { padding: 0.4rem 0.35rem; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: middle; }
+.fin-table tr:last-child td { border-bottom: none; }
+.fin-table td input { padding: 0.4rem 0.5rem; font-size: 0.82rem; }
+.fin-total-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.75rem; background: var(--surface2); border-radius: 4px; margin-top: 0.5rem; border: 1px solid var(--border); }
+.fin-total-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.fin-total-val { font-size: 1.05rem; font-weight: 600; color: var(--bege-dk); }
+
+/* ── BOTÕES ── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.55rem 1.1rem; font-size: 0.82rem; font-weight: 500; border-radius: 4px; cursor: pointer; transition: all 0.2s; border: none; font-family: inherit; white-space: nowrap; }
+.btn-gold    { background: var(--bege); color: var(--carvao); font-weight: 600; }
+.btn-gold:hover { background: #B39F88; }
+.btn-sec     { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); }
+.btn-sec:hover { background: var(--surface3); }
+.btn-danger  { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); padding: 0.35rem 0.5rem; }
+.btn-danger:hover { background: rgba(239,68,68,0.2); }
+.btn-sm      { padding: 0.3rem 0.65rem; font-size: 0.75rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── ABA FINANCEIRO ── */
+.panel-financeiro { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; }
+
+.filter-bar { background: var(--surface); border: 1px solid var(--border); padding: 1rem 1.25rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+.filter-options { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+.filter-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--bege-dk); letter-spacing: 0.05em; flex-shrink: 0; }
+.checkbox-group { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.checkbox-label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; cursor: pointer; color: var(--text); }
+.checkbox-label input { width: 14px; height: 14px; accent-color: var(--bege-dk); cursor: pointer; flex-shrink: 0; }
+
+.action-group { display: flex; gap: 0.6rem; }
+
+.table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; }
+.hide-unit-col { display: none !important; }
+
+/* Tabela financeiro consolidado */
+#tabelaFluxoCompilado { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+#tabelaFluxoCompilado th { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; font-weight: 500; }
+#tabelaFluxoCompilado td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+#tabelaFluxoCompilado tbody tr:last-child td { border-bottom: none; }
+#tabelaFluxoCompilado tbody tr:hover td { background: rgba(0,176,185,0.05); }
+/* ── MINI RELATÓRIO DE FILTRO ── */
+.rel-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 1rem;
+}
+.rel-header-top { display: flex; align-items: center; gap: 0.6rem; }
+.rel-status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.rel-title { font-size: 1rem; font-weight: 600; color: var(--text); }
+.rel-count { font-size: 0.72rem; background: var(--surface2); border: 1px solid var(--border2); color: var(--text-muted); padding: 0.15rem 0.55rem; border-radius: 20px; }
+.rel-vgv-total { text-align: right; }
+.rel-vgv-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.15rem; }
+.rel-vgv-val { font-size: 1.1rem; font-weight: 600; color: var(--bege-dk); }
+
+.rel-body { flex: 1; overflow-y: auto; }
+.rel-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.rel-table thead th {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.rel-row { cursor: pointer; transition: background 0.15s; }
+.rel-row:hover td { background: rgba(199,178,153,0.04); }
+.rel-row:hover .rel-id .rel-badge { color: var(--bege-dk); }
+.rel-td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.rel-table tbody tr:last-child .rel-td { border-bottom: none; }
+
+.rel-id { min-width: 90px; }
+.rel-badge { display: block; font-weight: 600; color: var(--text); margin-bottom: 0.15rem; transition: color 0.15s; }
+.rel-tipo { font-size: 0.68rem; color: var(--text-muted); }
+.rel-substatus { display: block; font-size: 0.65rem; font-weight: 600; margin-top: 0.2rem; }
+.rel-cliente { color: var(--text); min-width: 100px; }
+.rel-vgv { text-align: right; font-weight: 500; color: var(--bege-dk); white-space: nowrap; min-width: 110px; }
+.rel-obs { font-size: 0.75rem; color: var(--text-muted); max-width: 160px; line-height: 1.4; }
+
+.rel-footer {
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  background: var(--surface2);
+}
 </style>
 </head>
 <body>
 
+<div id="toast-container"></div>
+
 <header>
-  <div class="logo-title">
-    <h1>Quaddra Jesuíno</h1>
-    <span>Backoffice Diretoria</span>
-    
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('espelho')"><i class="ti ti-layout-dashboard"></i>Espelho de Vendas</button>
-      <button class="tab-btn" onclick="switchTab('financeiro')"><i class="ti ti-coin-bitcoin"></i>Controle Financeiro</button>
+  <div class="header-left">
+    <div class="logo-title">
+      <h1>Quaddra Jesuíno</h1>
+      <span class="logo-badge">Backoffice · Diretoria</span>
     </div>
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('espelho', event)">
+        <i class="ti ti-layout-dashboard"></i>Espelho de Vendas
+      </button>
+      <button class="tab-btn" onclick="switchTab('financeiro', event)">
+        <i class="ti ti-chart-bar"></i>Controle Financeiro
+      </button>
+    </nav>
   </div>
-  <div class="sync-status">
-    <div id="syncDot" class="sync-dot"></div>
-    <span id="syncText">Atualizando dados...</span>
+  <div class="header-right">
+    <div class="sync-status" onclick="carregarDados()" title="Clique para sincronizar">
+      <div id="syncDot" class="sync-dot"></div>
+      <span id="syncText">Conectando...</span>
+      <i class="ti ti-refresh" style="font-size:0.85rem; opacity:0.6"></i>
+    </div>
   </div>
 </header>
 
+<!-- ABA ESPELHO -->
 <div id="tab-espelho" class="tab-content active">
   <div class="panel-left">
+
+    <!-- Busca -->
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" id="searchInput" placeholder="Buscar unidade ou cliente..." oninput="filtrarEspelho(this.value)">
+    </div>
+
+    <!-- KPIs -->
     <div class="kpis-grid">
-      <div class="kpi-card">
-        <p>VGV Assinado (CV)</p>
-        <h3 id="kpiVgvAssinado">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countAssinado">0 un</span><span>Fechado</span></div>
+      <div class="kpi-card" id="kpiCard-CV_ASSINADO" onclick="filtrarPorStatus('CV_ASSINADO')" title="Clique para filtrar no espelho">
+        <p>VGV CV Assinado</p>
+        <h3 id="kpiVgvAssinado">R$ 0</h3>
+        <div class="kpi-sub"><span id="countAssinado">0 un</span><span style="color:#4ADE80">●</span></div>
       </div>
-      <div class="kpi-card">
+      <div class="kpi-card" id="kpiCard-PROCESSO" onclick="filtrarPorStatus('PROCESSO')" title="Clique para filtrar no espelho">
         <p>VGV Em Processo</p>
-        <h3 id="kpiVgvProcesso">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countProcesso">0 un</span><span>Processo + Contrato</span></div>
+        <h3 id="kpiVgvProcesso">R$ 0</h3>
+        <div class="kpi-sub"><span id="countProcesso">0 un</span><span style="color:#3B82F6">●</span></div>
       </div>
-      <div class="kpi-card">
-        <p>VGV em Proposta</p>
-        <h3 id="kpiVgvProposta">R$ 0,00</h3>
-        <div class="kpi-sub"><span id="countProposta">0 un</span><span>Análise Inicial</span></div>
+      <div class="kpi-card" id="kpiCard-RESERVA_VENDA" onclick="filtrarPorStatus('RESERVA_VENDA')" title="Clique para filtrar no espelho">
+        <p>VGV Reserva Venda</p>
+        <h3 id="kpiVgvReserva">R$ 0</h3>
+        <div class="kpi-sub"><span id="countReserva">0 un</span><span style="color:#F59E0B">●</span></div>
       </div>
-      <div class="kpi-card">
+      <div class="kpi-card" id="kpiCard-PROPOSTA" onclick="filtrarPorStatus('PROPOSTA')" title="Clique para filtrar no espelho">
+        <p>VGV Em Proposta</p>
+        <h3 id="kpiVgvProposta">R$ 0</h3>
+        <div class="kpi-sub"><span id="countProposta">0 un</span><span style="color:#4ADE80">●</span></div>
+      </div>
+      <div class="kpi-card" id="kpiCard-DISPONIVEL" onclick="filtrarPorStatus('DISPONIVEL')" title="Clique para filtrar no espelho">
         <p>Estoque Disponível</p>
         <h3 id="kpiDisponivel">0 un</h3>
-        <div class="kpi-sub"><span id="countSuspensa">0 un</span></div>
+        <div class="kpi-sub"><span id="countSuspensa" style="color:#888">0 un suspensas</span></div>
       </div>
     </div>
 
+    <!-- Espelho -->
     <div class="espelho-container">
-      <div class="espelho-header">
-        <span>Estrutura de Pavimentos Reais</span>
-        <button class="btn btn-sec" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="exportarEspelhoImagem()"><i class="ti ti-camera"></i> Salvar como Imagem</button>
+      <div class="espelho-top">
+        <div class="espelho-top-left">
+          <div class="espelho-title">Espelho de Pavimentos</div>
+          <div class="legenda" id="legenda-status"></div>
+        </div>
+        <button class="btn btn-sec btn-sm" onclick="exportarEspelhoImagem()">
+          <i class="ti ti-camera"></i> Imagem
+        </button>
       </div>
       <div id="captureArea">
         <div class="grid-predio" id="predioContainer"></div>
@@ -176,52 +362,42 @@
     </div>
   </div>
 
+  <!-- Gaveta / Painel Direito -->
   <div class="panel-right" id="painelDireto">
     <div class="painel-vazio">
       <i class="ti ti-building-store"></i>
-      <p>Selecione uma unidade no espelho para visualizar o fluxo financeiro e o histórico da esteira.</p>
+      <p>Selecione uma unidade no espelho<br>para editar status, esteira e fluxo financeiro.</p>
     </div>
   </div>
 </div>
 
+<!-- ABA FINANCEIRO -->
 <div id="tab-financeiro" class="tab-content">
   <div class="panel-financeiro">
-    
+
     <div class="filter-bar">
       <div class="filter-options">
-        <div class="filter-title">Status:</div>
+        <span class="filter-title">Filtrar por Status:</span>
         <div class="checkbox-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkAssinado" checked onchange="renderFinanceiro()"> 
-            <span style="color: #15803D;">●</span> Assinado
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkContrato" checked onchange="renderFinanceiro()"> 
-            <span style="color: #3B82F6;">●</span> Contrato Enviado
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkReserva" checked onchange="renderFinanceiro()"> 
-            <span style="color: #F59E0B;">●</span> Reserva Venda
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkProcesso" checked onchange="renderFinanceiro()"> 
-            <span style="color: #22C55E;">●</span> Processo
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="chkProposta" checked onchange="renderFinanceiro()"> 
-            <span style="color: #86EFAC;">●</span> Proposta
-          </label>
+          <label class="checkbox-label"><input type="checkbox" id="chkAssinado"       checked onchange="renderFinanceiro()"> <span style="color:#4ADE80">●</span> CV Assinado</label>
+          <label class="checkbox-label"><input type="checkbox" id="chkContrato"       checked onchange="renderFinanceiro()"> <span style="color:#3B82F6">●</span> Contrato Enviado</label>
+          <label class="checkbox-label"><input type="checkbox" id="chkReserva"        checked onchange="renderFinanceiro()"> <span style="color:#F59E0B">●</span> Reserva Venda</label>
+          <label class="checkbox-label"><input type="checkbox" id="chkProcesso"       checked onchange="renderFinanceiro()"> <span style="color:#22C55E">●</span> Processo</label>
+          <label class="checkbox-label"><input type="checkbox" id="chkProposta"       checked onchange="renderFinanceiro()"> <span style="color:#4ADE80">●</span> Proposta</label>
         </div>
       </div>
-      
       <div class="action-group">
-        <button class="btn btn-sec" id="btnToggleUnidades" onclick="toggleVisibilidadeUnidades()"><i class="ti ti-eye-off"></i> Esconder Unidades</button>
-        <button class="btn btn-gold" onclick="exportarFluxoExcel()"><i class="ti ti-download"></i> Exportar Excel</button>
+        <button class="btn btn-sec btn-sm" id="btnToggleUnidades" onclick="toggleVisibilidadeUnidades()">
+          <i class="ti ti-eye-off"></i> Esconder Unidades
+        </button>
+        <button class="btn btn-gold btn-sm" onclick="exportarFluxoExcel()">
+          <i class="ti ti-download"></i> Exportar Excel
+        </button>
       </div>
     </div>
 
     <div class="table-container">
-      <table class="fin-table" id="tabelaFluxoCompilado">
+      <table id="tabelaFluxoCompilado">
         <thead></thead>
         <tbody id="corpoFluxoCompilado"></tbody>
       </table>
@@ -231,538 +407,820 @@
 </div>
 
 <script>
-  // ATENÇÃO: COLOQUE SUA NOVA URL DE IMPLANTAÇÃO DA PLANILHA AQUI ABAIXO
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec";
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  CONFIGURAÇÃO — Insira sua URL do Google Apps Script
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYtg8Mwk-gZl31--ZKCcg3HyijAJzd8REFsGB34ffX3LcGV2ZRS0vCTROqIvYTD9tK/exec";
 
-  let units = [];
-  let selectedUnitId = null;
-  let esconderUnidades = false;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  CONSTANTES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const STATUS_CONFIG = {
+  DISPONIVEL:       { label: "Disponível",        color: "#9CA3AF" },
+  PROPOSTA:         { label: "Proposta",           color: "#4ADE80" },
+  PROCESSO:         { label: "Em Processo",        color: "#22C55E" },
+  RESERVA_VENDA:    { label: "Reserva Venda",      color: "#F59E0B" },
+  CONTRATO_ENVIADO: { label: "Contrato Enviado",   color: "#3B82F6" },
+  CV_ASSINADO:      { label: "CV Assinado",        color: "#15803D" },
+  SUSPENSA:         { label: "Suspensa",           color: "#6B7280" }
+};
 
-  function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    
-    if(tabName === 'espelho') {
-      document.getElementById('tab-espelho').classList.add('active');
-      event.currentTarget.classList.add('active');
-    } else {
-      document.getElementById('tab-financeiro').classList.add('active');
-      event.currentTarget.classList.add('active');
-      renderFinanceiro();
-    }
+// Agrupamentos de status: o card "Em Processo" soma PROCESSO + CONTRATO_ENVIADO
+// no VGV (ver renderKPIs). O filtro do espelho e o relatório usam o mesmo critério,
+// senão as unidades com contrato enviado aparecem no card mas somem do relatório.
+const GRUPOS_STATUS = {
+  PROCESSO: ["PROCESSO", "CONTRATO_ENVIADO"]
+};
+
+function statusNoGrupo(status, grupoKey) {
+  const grupo = GRUPOS_STATUS[grupoKey];
+  return grupo ? grupo.includes(status) : status === grupoKey;
+}
+
+const FASES = [
+  "Proposta em Análise",
+  "Aprovada Comercial / Diretoria",
+  "Análise de Crédito / Compliance",
+  "Confecção de Contrato / Jurídico",
+  "Em Assinatura (Coleta)",
+  "Contrato Assinado & Ativo"
+];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  ESTADO GLOBAL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let units = [];
+let selectedUnitId = null;
+let esconderUnidades = false;
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  ÁRVORE REAL DO JESUÍNO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function buildRealJesuinoTree() {
+  const list = [];
+
+  // Final 1 — 387m² Tipo, exceto especiais
+  list.push({ id_unidade: "21", andar: 2, final: 1, metragem: 478, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
+  for (let a = 3; a <= 27; a++) {
+    list.push({ id_unidade: `${a}1`, andar: a, final: 1, metragem: 387, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
   }
+  list.push({ id_unidade: "281", andar: 28, final: 1, metragem: 609, tipo: "Cobertura", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
 
-  function buildRealJesuinoTree() {
-    const list = [];
-    list.push({ id_unidade: "21", andar: 2, final: 1, metragem: 478, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    for (let a = 3; a <= 27; a++) {
-      list.push({ id_unidade: `${a}1`, andar: a, final: 1, metragem: 387, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    }
-    list.push({ id_unidade: "281", andar: 28, final: 1, metragem: 609, tipo: "Cobertura", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-
-    list.push({ id_unidade: "22", andar: 2, final: 2, metragem: 349, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    for (let a = 3; a <= 6; a++) {
-      list.push({ id_unidade: `${a}2`, andar: a, final: 2, metragem: 326, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-    }
-    list.push({ id_unidade: "72", andar: 7, final: 2, metragem: 545, tipo: "Duplex", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
-
-    return list;
+  // Final 2 — andares 2-6: 326m² Tipo, andar 7: Duplex
+  list.push({ id_unidade: "22", andar: 2, final: 2, metragem: 349, tipo: "Garden", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
+  for (let a = 3; a <= 6; a++) {
+    list.push({ id_unidade: `${a}2`, andar: a, final: 2, metragem: 326, tipo: "Tipo", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
   }
+  list.push({ id_unidade: "72", andar: 7, final: 2, metragem: 545, tipo: "Duplex", status_espelho: "DISPONIVEL", cliente_nome: "", observacoes: "", fase_esteira: 1, fluxo_financeiro: [] });
 
-  function tratarFormatoData(dataS) {
-    if (!dataS) return "";
-    let s = String(dataS).trim();
+  return list;
+}
 
-    // 1. Se for a string longa padrão do Google (ex: "Mon Jun 01 2026...")
-    if (s.length > 15 && (s.includes("GMT") || s.includes("Mon") || s.includes("Tue") || s.includes("Wed") || s.includes("Thu") || s.includes("Fri") || s.includes("Sat") || s.includes("Sun"))) {
-      try {
-        let d = new Date(s);
-        if (!isNaN(d.getTime())) {
-          let mes = String(d.getMonth() + 1).padStart(2, '0');
-          let ano = d.getFullYear();
-          return `${mes}/${ano}`;
-        }
-      } catch (e) {
-        console.error("Erro ao converter data por extenso:", e);
-      }
-    }
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  TRATAMENTO DE DATA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function tratarFormatoData(dataS) {
+  if (!dataS) return "";
+  let s = String(dataS).trim();
 
-    // 2. Se vier no formato ISO (ex: "2026-06-01T00:00:00")
-    if (s.includes("T")) {
-      s = s.split("T")[0];
-    }
-    if (s.includes("-")) {
-      let partes = s.split("-");
-      if (partes[0].length === 4) {
-        return `${partes[1]}/${partes[0]}`;
-      }
-    }
-
-    // 3. Se já for formato correto texto (ex: "07/2030"), retorna direto
-    return s;
-  }
-
-  async function carregarDados() {
-    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SUA_NOVA_URL_AQUI")) {
-      console.warn("URL da planilha não configurada. Executando em árvore local vazia.");
-      units = buildRealJesuinoTree();
-      renderEspelho();
-      renderKPIs();
-      return;
-    }
-
+  // String longa do Google Sheets (ex: "Mon Jun 01 2026 GMT-0300...")
+  if (s.length > 15 && (s.includes("GMT") || /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/.test(s))) {
     try {
-      const response = await fetch(GOOGLE_SCRIPT_URL);
-      const result = await response.json();
-      const localTree = buildRealJesuinoTree();
-
-      if (result && result.status === "success" && Array.isArray(result.data)) {
-        const cloudData = result.data;
-        
-        localTree.forEach(u => {
-          const match = cloudData.find(c => String(c.id_unidade) === String(u.id_unidade));
-          if (match) {
-            u.status_espelho = match.status_espelho || "DISPONIVEL";
-            u.cliente_nome = match.cliente_nome || "";
-            u.observacoes = match.observacoes || "";
-            u.fase_esteira = parseInt(match.fase_esteira) || 1;
-            
-            // GARANTIA: Trata tanto 'fluxo_financeiro' quanto 'fluxo' se vier da planilha
-            let fluxoBruto = match.fluxo_financeiro || match.fluxo || [];
-            if(Array.isArray(fluxoBruto)) {
-              u.fluxo_financeiro = fluxoBruto.map(f => {
-                return {
-                  data_vencimento: tratarFormatoData(f.data_vencimento || f.mes_ano),
-                  descricao: f.descricao || f.condicao || "",
-                  valor: parseFloat(f.valor) || 0
-                };
-              });
-            } else {
-              u.fluxo_financeiro = [];
-            }
-          }
-        });
-        
-        document.getElementById("syncDot").className = "sync-dot online";
-        document.getElementById("syncText").innerText = "Dados Conectados";
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return String(d.getMonth() + 1).padStart(2, '0') + "/" + d.getFullYear();
       }
-      
-      units = localTree;
-      renderEspelho();
-      renderKPIs();
-      renderFinanceiro(); // Força a renderização da aba financeira com os novos dados
-      
-      if (selectedUnitId) {
-        renderGaveta(selectedUnitId);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      document.getElementById("syncDot").className = "sync-dot";
-      document.getElementById("syncText").innerText = "Modo Offline / Erro de URL";
+    } catch(e) {}
+  }
+
+  // ISO com T (ex: "2026-06-01T00:00:00")
+  if (s.includes("T")) s = s.split("T")[0];
+
+  // ISO sem T (ex: "2026-06-01")
+  if (s.includes("-")) {
+    const p = s.split("-");
+    if (p[0].length === 4) return p[1] + "/" + p[0];
+  }
+
+  // Já está no formato correto (ex: "06/2026")
+  return s;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  FORMATAÇÃO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function fmtBRL(v) {
+  return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+}
+function fmtNum(v) {
+  return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  TOAST
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function showToast(msg, type = 'info', duration = 3500) {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  const icons = { success: 'ti-check', error: 'ti-x', info: 'ti-info-circle' };
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="ti ${icons[type] || 'ti-info-circle'}"></i> ${msg}`;
+  container.appendChild(t);
+  requestAnimationFrame(() => { requestAnimationFrame(() => t.classList.add('show')); });
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 350);
+  }, duration);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  NAVEGAÇÃO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function switchTab(tabName, event) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tabName).classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
+  if (tabName === 'financeiro') renderFinanceiro();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  BUSCA E FILTRO NO ESPELHO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let filtroStatusAtivo = null; // status key ativo pelo KPI
+
+function filtrarPorStatus(statusKey) {
+  if (filtroStatusAtivo === statusKey) {
+    filtroStatusAtivo = null;
+  } else {
+    filtroStatusAtivo = statusKey;
+    document.getElementById('searchInput').value = '';
+    // Se uma unidade estava aberta, fecha — painel vira relatório
+    selectedUnitId = null;
+  }
+
+  document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('kpi-active'));
+  if (filtroStatusAtivo) {
+    const card = document.getElementById('kpiCard-' + filtroStatusAtivo);
+    if (card) card.classList.add('kpi-active');
+  }
+
+  aplicarFiltros();
+  renderRelatorioFiltro();
+}
+
+function filtrarEspelho(q) {
+  if (q.trim()) {
+    filtroStatusAtivo = null;
+    document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('kpi-active'));
+  }
+  aplicarFiltros();
+  // Limpa relatório se não há filtro de status
+  if (!filtroStatusAtivo) renderRelatorioFiltro();
+}
+
+function aplicarFiltros() {
+  const q        = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  const stFiltro = filtroStatusAtivo;
+
+  document.querySelectorAll('.unit-box').forEach(box => {
+    if (box.style.opacity === '0') return;
+    let visivel = true;
+    if (stFiltro) {
+      visivel = statusNoGrupo(box.dataset.status, stFiltro);
+    } else if (q) {
+      visivel = (box.dataset.id || '').includes(q) || (box.dataset.cliente || '').includes(q);
     }
-  }
-  
-  function toggleVisibilidadeUnidades() {
-    esconderUnidades = !esconderUnidades;
-    const btn = document.getElementById("btnToggleUnidades");
-    btn.innerHTML = esconderUnidades ? `<i class="ti ti-eye"></i> Mostrar Unidades` : `<i class="ti ti-eye-off"></i> Esconder Unidades`;
-    renderFinanceiro();
-  }
+    box.classList.toggle('hidden-search', !visivel);
+  });
+}
 
-  function renderFinanceiro() {
-    const chkAssinado = document.getElementById("chkAssinado").checked;
-    const chkContrato = document.getElementById("chkContrato").checked;
-    const chkReserva = document.getElementById("chkReserva").checked;
-    const chkProcesso = document.getElementById("chkProcesso").checked;
-    const chkProposta = document.getElementById("chkProposta").checked;
+function renderRelatorioFiltro() {
+  const panel = document.getElementById('painelDireto');
 
-    const unidadesFiltradas = units.filter(u => {
-      if (u.status_espelho === "CV_ASSINADO" && chkAssinado) return true;
-      if (u.status_espelho === "CONTRATO_ENVIADO" && chkContrato) return true;
-      if (u.status_espelho === "RESERVA_VENDA" && chkReserva) return true;
-      if (u.status_espelho === "PROCESSO" && chkProcesso) return true;
-      if (u.status_espelho === "PROPOSTA" && chkProposta) return true;
-      return false;
-    });
-
-    let todosMeses = [];
-    unidadesFiltradas.forEach(u => {
-      u.fluxo_financeiro.forEach(f => {
-        if(f.data_vencimento && !todosMeses.includes(f.data_vencimento)) {
-          todosMeses.push(f.data_vencimento);
-        }
-      });
-    });
-
-    todosMeses.sort((a, b) => {
-      let pA = a.split("/"), pB = b.split("/");
-      if(pA.length === 2 && pB.length === 2) {
-        return new Date(pA[1], pA[0]-1) - new Date(pB[1], pB[0]-1);
-      }
-      return 0;
-    });
-
-    const tabela = document.getElementById("tabelaFluxoCompilado");
-    tabela.innerHTML = "";
-
-    let thead = document.createElement("thead");
-    let headerRow = `<tr><th style="min-width:120px;">Mês/Ano</th>`;
-    let displayStyle = esconderUnidades ? 'class="hide-unit-col"' : '';
-
-    unidadesFiltradas.forEach(u => {
-      headerRow += `<th ${displayStyle} style="font-size:0.75rem; text-align:right;">Ap ${u.id_unidade}<br><span style="color:var(--text-muted); font-weight:normal;">${u.cliente_nome || 'S/N'}</span></th>`;
-    });
-    
-    headerRow += `<th style="text-align:right; color:var(--gold);">Total Geral</th>`;
-    headerRow += `<th style="text-align:right; color:#22C55E;">Acumulado</th></tr>`;
-    thead.innerHTML = headerRow;
-    tabela.appendChild(thead);
-
-    let tbody = document.createElement("tbody");
-    let acumuladorVGV = 0;
-
-    todosMeses.forEach(mes => {
-      let rowHTML = `<tr><td style="font-weight:600; color:#FFF;">${mes}</td>`;
-      let totalDoMes = 0;
-
-      unidadesFiltradas.forEach(u => {
-        let parcelaDoMes = u.fluxo_financeiro.filter(f => f.data_vencimento === mes);
-        let somaParcela = parcelaDoMes.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
-        
-        if (somaParcela > 0) {
-          totalDoMes += somaParcela;
-          rowHTML += `<td ${displayStyle} style="text-align:right; color:var(--text); font-size:0.85rem;">${somaParcela.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>`;
-        } else {
-          rowHTML += `<td ${displayStyle} style="text-align:right; color:var(--text-muted); opacity:0.3;">-</td>`;
-        }
-      });
-
-      acumuladorVGV += totalDoMes;
-      rowHTML += `<td style="text-align:right; font-weight:600; color:var(--gold); background:rgba(184,150,62,0.02);">${totalDoMes.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td>`;
-      rowHTML += `<td style="text-align:right; font-weight:600; color:#22C55E; background:rgba(34,197,94,0.02);">${acumuladorVGV.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0})}</td></tr>`;
-      
-      tbody.insertAdjacentHTML('beforeend', rowHTML);
-    });
-
-    if(todosMeses.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="100%" style="text-align:center; padding:3rem; color:var(--text-muted);">Nenhum fluxo financeiro encontrado para os status selecionados.</td></tr>`;
+  // Sem filtro ativo → volta ao estado vazio (a menos que uma unidade esteja selecionada)
+  if (!filtroStatusAtivo) {
+    if (!selectedUnitId) {
+      panel.innerHTML = `
+        <div class="painel-vazio">
+          <i class="ti ti-building-store"></i>
+          <p>Selecione uma unidade no espelho<br>para editar status, esteira e fluxo financeiro.</p>
+        </div>`;
     }
-    tabela.appendChild(tbody);
+    return;
   }
 
-  function exportarFluxoExcel() {
-    const table = document.getElementById("tabelaFluxoCompilado");
-    let tempTable = table.cloneNode(true);
-    tempTable.querySelectorAll('.hide-unit-col').forEach(el => el.classList.remove('hide-unit-col'));
-    const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Fluxo Mensal" });
-    XLSX.writeFile(wb, `Fluxo_Financeiro_Quaddra_Jesuino.xlsx`);
-  }
+  const cfg = STATUS_CONFIG[filtroStatusAtivo] || {};
+  const unidades = units.filter(u => statusNoGrupo(u.status_espelho, filtroStatusAtivo));
+  const vgvTotal = unidades.reduce((s, u) =>
+    s + u.fluxo_financeiro.reduce((a, f) => a + (parseFloat(f.valor) || 0), 0), 0);
 
-  function exportarEspelhoImagem() {
-    const area = document.getElementById("captureArea");
-    html2canvas(area, { backgroundColor: "#16181F", logging: false, scale: 2 }).then(canvas => {
-      let link = document.createElement('a');
-      link.download = `Espelho_Quaddra_Jesuino.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  }
+  const linhas = unidades.map(u => {
+    const vgv = u.fluxo_financeiro.reduce((s, f) => s + (parseFloat(f.valor) || 0), 0);
+    const obs  = (u.observacoes || '').trim();
+    // Quando o status real difere da chave do filtro (ex: CONTRATO_ENVIADO dentro do grupo PROCESSO),
+    // mostra um selo indicando o status efetivo da unidade.
+    const subStatusCfg = STATUS_CONFIG[u.status_espelho] || {};
+    const subStatus = u.status_espelho !== filtroStatusAtivo
+      ? `<span class="rel-substatus" style="color:${subStatusCfg.color || '#888'}">${subStatusCfg.label || u.status_espelho}</span>`
+      : '';
+    return `
+      <tr class="rel-row" onclick="selectUnit('${u.id_unidade}')" title="Abrir unidade ${u.id_unidade}">
+        <td class="rel-td rel-id">
+          <span class="rel-badge">Ap ${u.id_unidade}</span>
+          <span class="rel-tipo">${u.tipo} · ${u.metragem}m²</span>
+          ${subStatus}
+        </td>
+        <td class="rel-td rel-cliente">${u.cliente_nome || '<span style="color:var(--text-muted);font-style:italic">S/N</span>'}</td>
+        <td class="rel-td rel-vgv">${vgv > 0 ? fmtBRL(vgv) : '<span style="color:var(--text-muted)">—</span>'}</td>
+        <td class="rel-td rel-obs">${obs ? `<span title="${obs}">${obs.length > 50 ? obs.slice(0,48)+'…' : obs}</span>` : '<span style="color:var(--text-muted)">—</span>'}</td>
+      </tr>`;
+  }).join('');
 
-  function renderEspelho() {
-    const container = document.getElementById("predioContainer");
-    container.innerHTML = "";
-    const andares = [...new Set(units.map(u => u.andar))].sort((a,b) => a - b);
+  const empty = unidades.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.85rem;">Nenhuma unidade com este status.</td></tr>`
+    : '';
 
-    andares.forEach(andar => {
-      const row = document.createElement("div");
-      row.className = "andar-row";
-
-      const label = document.createElement("div");
-      label.className = "label-andar";
-      label.innerText = `${andar}º`;
-      row.appendChild(label);
-
-      const u1 = units.find(u => u.andar === andar && u.final === 1);
-      row.appendChild(createUnitDom(u1));
-
-      const u2 = units.find(u => u.andar === andar && u.final === 2);
-      row.appendChild(createUnitDom(u2));
-
-      container.appendChild(row);
-    });
-  }
-
-  function createUnitDom(u) {
-    const box = document.createElement("div");
-    if (!u) {
-      box.className = "unit-box";
-      box.style.opacity = "0";
-      box.style.pointerEvents = "none";
-      return box;
-    }
-
-    box.className = `unit-box u-${u.status_espelho.toLowerCase()} ${String(u.id_unidade) === String(selectedUnitId) ? 'selected' : ''}`;
-    box.onclick = () => selectUnit(u.id_unidade);
-
-    box.innerHTML = `
-      <div class="unit-name">Ap ${u.id_unidade}</div>
-      <div class="unit-meta">
-        <span>${u.metragem}m²</span>
-        <strong style="color:${getStatusColor(u.status_espelho)}">${u.status_espelho.replace('_', ' ')}</strong>
+  panel.innerHTML = `
+    <div class="rel-header">
+      <div class="rel-header-top">
+        <span class="rel-status-dot" style="background:${cfg.color || '#888'}"></span>
+        <span class="rel-title">${cfg.label || filtroStatusAtivo}</span>
+        <span class="rel-count">${unidades.length} unidade${unidades.length !== 1 ? 's' : ''}</span>
       </div>
-    `;
+      <div class="rel-vgv-total">
+        <span class="rel-vgv-label">VGV Total</span>
+        <span class="rel-vgv-val">${fmtBRL(vgvTotal)}</span>
+      </div>
+    </div>
+
+    <div class="rel-body">
+      <table class="rel-table">
+        <thead>
+          <tr>
+            <th>Unidade</th>
+            <th>Cliente</th>
+            <th>VGV</th>
+            <th>Obs.</th>
+          </tr>
+        </thead>
+        <tbody>${linhas}${empty}</tbody>
+      </table>
+    </div>
+
+    <div class="rel-footer">
+      <i class="ti ti-info-circle" style="font-size:0.85rem;opacity:0.5"></i>
+      <span>Clique em uma linha para abrir a unidade</span>
+    </div>
+  `;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  LEGENDA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderLegenda() {
+  const el = document.getElementById('legenda-status');
+  el.innerHTML = Object.entries(STATUS_CONFIG).map(([k, v]) =>
+    `<div class="legenda-item">
+      <div class="legenda-dot" style="background:${v.color};"></div>
+      ${v.label}
+    </div>`
+  ).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  ESPELHO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getStatusColor(st) {
+  return (STATUS_CONFIG[st] || STATUS_CONFIG['DISPONIVEL']).color;
+}
+
+function renderEspelho() {
+  const container = document.getElementById("predioContainer");
+  container.innerHTML = "";
+  const andares = [...new Set(units.map(u => u.andar))].sort((a, b) => a - b);
+
+  andares.forEach(andar => {
+    const row = document.createElement("div");
+    row.className = "andar-row";
+
+    const lbl = document.createElement("div");
+    lbl.className = "label-andar";
+    lbl.textContent = `${andar}º`;
+    row.appendChild(lbl);
+
+    const u1 = units.find(u => u.andar === andar && u.final === 1);
+    const u2 = units.find(u => u.andar === andar && u.final === 2);
+    row.appendChild(createUnitDom(u1));
+    row.appendChild(createUnitDom(u2));
+
+    container.appendChild(row);
+  });
+
+  // Reaplicar filtros activos (status ou texto)
+  aplicarFiltros();
+}
+
+function createUnitDom(u) {
+  const box = document.createElement("div");
+  if (!u) {
+    box.className = "unit-box";
+    box.style.cssText = "opacity:0; pointer-events:none;";
     return box;
   }
 
-  function getStatusColor(st) {
-    if (st === "PROPOSTA") return "#86EFAC";
-    if (st === "PROCESSO") return "#22C55E";
-    if (st === "RESERVA_VENDA") return "#F59E0B";
-    if (st === "CONTRATO_ENVIADO") return "#3B82F6";
-    if (st === "CV_ASSINADO") return "#15803D";
-    if (st === "SUSPENSA") return "#EF4444";
-    return "#94A3B8";
-  }
+  const stKey = u.status_espelho.toLowerCase();
+  const isSelected = String(u.id_unidade) === String(selectedUnitId);
+  box.className = `unit-box u-${stKey}${isSelected ? ' selected' : ''}`;
+  box.dataset.id     = String(u.id_unidade).toLowerCase();
+  box.dataset.cliente = (u.cliente_nome || '').toLowerCase();
+  box.dataset.status  = u.status_espelho;
+  box.onclick = () => selectUnit(u.id_unidade);
 
-  function renderKPIs() {
-    let vgvAssinado = 0, vgvProcesso = 0, vgvProposta = 0;
-    let cAssinado = 0, cProcesso = 0, cProposta = 0, cSuspensa = 0, cDisponivel = 0;
+  const fase = u.fase_esteira || 1;
+  const mostrarFase = u.status_espelho !== "DISPONIVEL" && u.status_espelho !== "SUSPENSA";
 
-    units.forEach(u => {
-      const totalUnidade = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
-      
-      if (u.status_espelho === "CV_ASSINADO") {
-        vgvAssinado += totalUnidade;
-        cAssinado++;
-      } else if (["PROCESSO", "CONTRATO_ENVIADO"].includes(u.status_espelho)) {
-        vgvProcesso += totalUnidade;
-        cProcesso++;
-      } else if (u.status_espelho === "PROPOSTA") {
-        vgvProposta += totalUnidade;
-        cProposta++;
-      } else if (u.status_espelho === "SUSPENSA") {
-        cSuspensa++;
-      } else {
-        cDisponivel++;
-      }
-    });
+  box.innerHTML = `
+    <div class="unit-name">Ap ${u.id_unidade}</div>
+    <div class="unit-meta">
+      <span>${u.metragem}m² · ${u.tipo}</span>
+      ${mostrarFase ? `<span class="unit-fase-badge">F${fase}</span>` : ''}
+    </div>
+    <div style="font-size:0.68rem; margin-top:0.2rem; color:${getStatusColor(u.status_espelho)}; font-weight:500;">
+      ${(STATUS_CONFIG[u.status_espelho] || {}).label || u.status_espelho}
+    </div>
+  `;
+  return box;
+}
 
-    document.getElementById("kpiVgvAssinado").innerText = vgvAssinado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-    document.getElementById("kpiVgvProcesso").innerText = vgvProcesso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-    document.getElementById("kpiVgvProposta").innerText = vgvProposta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-    document.getElementById("kpiDisponivel").innerText = `${cDisponivel} un`;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  KPIs
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderKPIs() {
+  let vgvAss = 0, vgvProc = 0, vgvRes = 0, vgvProp = 0;
+  let cAss = 0, cProc = 0, cRes = 0, cProp = 0, cSusp = 0, cDisp = 0;
 
-    document.getElementById("countAssinado").innerText = `${cAssinado} un`;
-    document.getElementById("countProcesso").innerText = `${cProcesso} un`;
-    document.getElementById("countProposta").innerText = `${cProposta} un`;
-    document.getElementById("countSuspensa").innerText = `${cSuspensa} un suspensas`;
-  }
-
-  function selectUnit(id) {
-    selectedUnitId = id;
-    renderEspelho();
-    renderGaveta(id);
-  }
-
-  function renderGaveta(id) {
-    const u = units.find(x => String(x.id_unidade) === String(id));
-    const rightPanel = document.getElementById("painelDireto");
-    let totalAtual = u.fluxo_financeiro.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
-
-    rightPanel.innerHTML = `
-      <div class="editor-header">
-        <div>
-          <h2>Unidade ${u.id_unidade}</h2>
-          <p style="font-size:0.8rem; color:var(--text-muted)">${u.tipo} — ${u.metragem}m²</p>
-        </div>
-        <div>
-          <span style="font-size:0.75rem; color:var(--text-muted)">VALOR TOTAL</span>
-          <h3 style="color:var(--gold)">${totalAtual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}</h3>
-        </div>
-      </div>
-      
-      <div class="editor-body">
-        <div class="form-group">
-          <label>Status no Espelho</label>
-          <select id="editStatus" onchange="window.updateStatusLocal(this.value)">
-            <option value="DISPONIVEL" ${u.status_espelho === "DISPONIVEL" ? "selected" : ""}>DISPONÍVEL</option>
-            <option value="PROPOSTA" ${u.status_espelho === "PROPOSTA" ? "selected" : ""}>PROPOSTA EM ANÁLISE</option>
-            <option value="PROCESSO" ${u.status_espelho === "PROCESSO" ? "selected" : ""}>EM PROCESSO COMERCIAL</option>
-            <option value="RESERVA_VENDA" ${u.status_espelho === "RESERVA_VENDA" ? "selected" : ""}>RESERVA VENDA</option>
-            <option value="CONTRATO_ENVIADO" ${u.status_espelho === "CONTRATO_ENVIADO" ? "selected" : ""}>CONTRATO ENVIADO</option>
-            <option value="CV_ASSINADO" ${u.status_espelho === "CV_ASSINADO" ? "selected" : ""}>CV ASSINADO</option>
-            <option value="SUSPENSA" ${u.status_espelho === "SUSPENSA" ? "selected" : ""}>SUSPENSA / BLOQUEADA</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Nome do Cliente</label>
-          <input type="text" id="editCliente" value="${u.cliente_nome || ''}" onchange="window.updateClienteLocal(this.value)" placeholder="Nome do proponente">
-        </div>
-
-        <div class="form-group">
-          <label>Observações da Unidade</label>
-          <textarea id="editObservacoes" onchange="window.updateObservacoesLocal(this.value)" placeholder="Inserir anotações estratégicas sobre a negociação...">${u.observacoes || ''}</textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Esteira de Vendas Interna</label>
-          <div class="esteira-fluxo">
-            <button class="step-btn ${u.fase_esteira === 1 ? 'active' : ''}" onclick="window.setFaseLocal(1)">1. Proposta</button>
-            <button class="step-btn ${u.fase_esteira === 2 ? 'active' : ''}" onclick="window.setFaseLocal(2)">2. Aprov. Dir</button>
-            <button class="step-btn ${u.fase_esteira === 3 ? 'active' : ''}" onclick="window.setFaseLocal(3)">3. Crédito</button>
-            <button class="step-btn ${u.fase_esteira === 4 ? 'active' : ''}" onclick="window.setFaseLocal(4)">4. Jurídico</button>
-            <button class="step-btn ${u.fase_esteira === 5 ? 'active' : ''}" onclick="window.setFaseLocal(5)">5. Coleta</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div style="display:flex; justify-content:space-between; align-items:center">
-            <label>Fluxo Financeiro da Unidade</label>
-            <button class="btn btn-sec" style="padding:0.25rem 0.5rem; font-size:0.75rem" onclick="window.addLinhaFluxo()">+ Parcela</button>
-          </div>
-          <table class="fin-table">
-            <thead>
-              <tr>
-                <th>Mês/Ano</th>
-                <th>Condição</th>
-                <th>Valor (R$)</th>
-                <th>%</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${u.fluxo_financeiro.map((f, i) => {
-                let pct = totalAtual > 0 ? ((parseFloat(f.valor) / totalAtual) * 100).toFixed(1) : 0;
-                return `
-                <tr>
-                  <td><input type="text" value="${f.data_vencimento}" placeholder="MM/AAAA" onchange="window.updateFluxoRow(${i}, 'data_vencimento', this.value)"></td>
-                  <td><input type="text" value="${f.descricao}" placeholder="Ato, Anual..." onchange="window.updateFluxoRow(${i}, 'descricao', this.value)"></td>
-                  <td><input type="number" value="${f.valor}" step="0.01" onchange="window.updateFluxoRow(${i}, 'valor', this.value)"></td>
-                  <td style="font-size:0.8rem; font-weight:600; color:var(--gold); padding-left:5px;">${pct}%</td>
-                  <td><button class="btn btn-danger" style="padding:0.25rem" onclick="window.deleteFluxoRow(${i})"><i class="ti ti-trash"></i></button></td>
-                </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="editor-footer">
-        <button class="btn btn-sec" onclick="window.carregarDados()">Cancelar</button>
-        <button class="btn btn-gold" id="btnSalvar" onclick="window.salvarUnidadeData('${u.id_unidade}')">Salvar na Planilha</button>
-      </div>
-    `;
-  }
-
-  window.updateStatusLocal = function(val) {
-    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
-    u.status_espelho = val;
-    if(val === "PROCESSO") u.fase_esteira = 2;
-    if(val === "RESERVA_VENDA") u.fase_esteira = 3;
-    if(val === "CONTRATO_ENVIADO") u.fase_esteira = 4;
-    if(val === "CV_ASSINADO") u.fase_esteira = 5;
-    renderKPIs();
-    renderGaveta(selectedUnitId);
-  }
-
-  window.updateClienteLocal = function(val) {
-    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
-    u.cliente_nome = val;
-  }
-
-  window.updateObservacoesLocal = function(val) {
-    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
-    u.observacoes = val;
-  }
-
-  window.setFaseLocal = function(fase) {
-    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
-    u.fase_esteira = fase;
-    renderGaveta(selectedUnitId);
-  }
-
-  window.updateFluxoRow = function(index, field, value) {
-    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
-    u.fluxo_financeiro[index][field] = value;
-    renderKPIs();
-    if(field === 'valor') { renderGaveta(selectedUnitId); }
-  }
-
-  window.addLinhaFluxo = function() {
-    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
-    let dataAtual = new Date();
-    let formatada = String(dataAtual.getMonth() + 1).padStart(2, '0') + "/" + dataAtual.getFullYear();
-    u.fluxo_financeiro.push({ data_vencimento: formatada, descricao: "", valor: 0 });
-    renderGaveta(selectedUnitId);
-  }
-
-  window.deleteFluxoRow = function(index) {
-    const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
-    u.fluxo_financeiro.splice(index, 1);
-    renderGaveta(selectedUnitId);
-    renderKPIs();
-  }
-
-  window.salvarUnidadeData = async function(id) {
-    const btn = document.getElementById("btnSalvar");
-    btn.innerText = "A guardar...";
-    btn.disabled = true;
-
-    const u = units.find(x => String(x.id_unidade) === String(id));
-
-    // Formata o fluxo para a estrutura de 6 colunas
-    const fluxoFormatado = (u.fluxo_financeiro || []).map(f => {
-      return {
-        id_fluxo: "FLX-" + Math.floor(Math.random() * 100000),
-        id_unidade: String(u.id_unidade).trim(),
-        data_vencimento: f.data_vencimento,
-        descricao: f.descricao,
-        valor: f.valor,
-        v_total: f.valor
-      };
-    });
-
-    const payload = {
-      action: "updateUnit",
-      id_unidade: String(u.id_unidade),
-      status_espelho: u.status_espelho,
-      cliente_nome: u.cliente_nome,
-      observacoes: u.observacoes || "",
-      fase_esteira: String(u.fase_esteira),
-      fluxo_financeiro: fluxoFormatado
-    };
-
-    try {
-      document.getElementById("syncDot").className = "sync-dot";
-      document.getElementById("syncText").innerText = "Enviando dados...";
-
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      setTimeout(() => {
-        carregarDados();
-        alert(`Sucesso! Unidade ${id} enviada para processamento na planilha.`);
-      }, 1500);
-
-    } catch (error) {
-      console.error(error);
-      alert("Erro na conexão ao salvar.");
-      carregarDados();
+  units.forEach(u => {
+    const total = u.fluxo_financeiro.reduce((s, f) => s + (parseFloat(f.valor) || 0), 0);
+    switch (u.status_espelho) {
+      case "CV_ASSINADO":       vgvAss  += total; cAss++;  break;
+      case "PROCESSO":
+      case "CONTRATO_ENVIADO":  vgvProc += total; cProc++; break;
+      case "RESERVA_VENDA":     vgvRes  += total; cRes++;  break;
+      case "PROPOSTA":          vgvProp += total; cProp++; break;
+      case "SUSPENSA":          cSusp++;                   break;
+      default:                  cDisp++;
     }
+  });
+
+  document.getElementById("kpiVgvAssinado").textContent = fmtBRL(vgvAss);
+  document.getElementById("kpiVgvProcesso").textContent = fmtBRL(vgvProc);
+  document.getElementById("kpiVgvReserva").textContent  = fmtBRL(vgvRes);
+  document.getElementById("kpiVgvProposta").textContent = fmtBRL(vgvProp);
+  document.getElementById("kpiDisponivel").textContent  = `${cDisp} un`;
+
+  document.getElementById("countAssinado").textContent = `${cAss} un`;
+  document.getElementById("countProcesso").textContent = `${cProc} un`;
+  document.getElementById("countReserva").textContent  = `${cRes} un`;
+  document.getElementById("countProposta").textContent = `${cProp} un`;
+  document.getElementById("countSuspensa").textContent = `${cSusp} un suspensas`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  SELEÇÃO E GAVETA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function selectUnit(id) {
+  selectedUnitId = id;
+  // Ao abrir uma unidade, desativa o filtro de status (KPI) visualmente
+  // mas não limpa o espelho — o usuário pode fechar e voltar ao relatório
+  filtroStatusAtivo = null;
+  document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('kpi-active'));
+  aplicarFiltros(); // mostra todas as unidades de novo
+  renderEspelho();
+  renderGaveta(id);
+}
+
+function renderGaveta(id) {
+  const u = units.find(x => String(x.id_unidade) === String(id));
+  if (!u) return;
+  const panel = document.getElementById("painelDireto");
+  const totalAtual = u.fluxo_financeiro.reduce((s, f) => s + (parseFloat(f.valor) || 0), 0);
+
+  panel.innerHTML = `
+    <div class="editor-header">
+      <div>
+        <h2>Unidade ${u.id_unidade}</h2>
+        <p>${u.tipo} · ${u.metragem}m² · ${(STATUS_CONFIG[u.status_espelho] || {}).label || u.status_espelho}</p>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.2rem">VGV Total</div>
+        <div style="font-size:1.1rem; font-weight:600; color:var(--bege-dk)">${fmtBRL(totalAtual)}</div>
+      </div>
+    </div>
+
+    <div class="editor-body">
+
+      <!-- Status -->
+      <div class="form-group">
+        <label>Status no Espelho</label>
+        <select id="editStatus" onchange="window.updateStatusLocal(this.value)">
+          <option value="DISPONIVEL"       ${u.status_espelho==="DISPONIVEL"       ?"selected":""}>Disponível</option>
+          <option value="PROPOSTA"         ${u.status_espelho==="PROPOSTA"         ?"selected":""}>Proposta em Análise</option>
+          <option value="PROCESSO"         ${u.status_espelho==="PROCESSO"         ?"selected":""}>Em Processo Comercial</option>
+          <option value="RESERVA_VENDA"    ${u.status_espelho==="RESERVA_VENDA"    ?"selected":""}>Reserva Venda</option>
+          <option value="CONTRATO_ENVIADO" ${u.status_espelho==="CONTRATO_ENVIADO" ?"selected":""}>Contrato Enviado</option>
+          <option value="CV_ASSINADO"      ${u.status_espelho==="CV_ASSINADO"      ?"selected":""}>CV Assinado</option>
+          <option value="SUSPENSA"         ${u.status_espelho==="SUSPENSA"         ?"selected":""}>Suspensa / Bloqueada</option>
+        </select>
+      </div>
+
+      <!-- Cliente -->
+      <div class="form-group">
+        <label>Nome do Cliente</label>
+        <input type="text" id="editCliente" value="${u.cliente_nome || ''}" placeholder="Nome do proponente" onchange="window.updateClienteLocal(this.value)">
+      </div>
+
+      <!-- Observações -->
+      <div class="form-group">
+        <label>Observações</label>
+        <textarea id="editObservacoes" placeholder="Anotações estratégicas sobre a negociação..." onchange="window.updateObservacoesLocal(this.value)">${u.observacoes || ''}</textarea>
+      </div>
+
+      <!-- Esteira — 6 fases -->
+      <div class="form-group">
+        <label>Esteira de Backoffice Interno (${u.fase_esteira}/6)</label>
+        <div class="esteira-wrap">
+          ${FASES.map((f, i) => {
+            const n = i + 1;
+            const isActive = u.fase_esteira === n;
+            const isDone   = u.fase_esteira > n;
+            const numHTML  = isDone
+              ? `<i class="ti ti-check" style="font-size:0.75rem"></i>`
+              : n;
+            return `<button class="step-btn-v${isActive?' active':''}${isDone?' done':''}" onclick="window.setFaseLocal(${n})">
+              <span class="step-num">${numHTML}</span>
+              <span>${n}. ${f}</span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Fluxo Financeiro -->
+      <div class="form-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem">
+          <label style="margin:0">Fluxo Financeiro da Unidade</label>
+          <button class="btn btn-sec btn-sm" onclick="window.addLinhaFluxo()"><i class="ti ti-plus"></i> Parcela</button>
+        </div>
+        <table class="fin-table">
+          <thead>
+            <tr>
+              <th>Mês/Ano</th>
+              <th>Condição</th>
+              <th style="text-align:right">Valor (R$)</th>
+              <th style="text-align:right">%</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${u.fluxo_financeiro.map((f, i) => {
+              const pct = totalAtual > 0 ? ((parseFloat(f.valor) / totalAtual) * 100).toFixed(1) : '0.0';
+              return `<tr>
+                <td><input type="text"   value="${f.data_vencimento || ''}" placeholder="MM/AAAA" onchange="window.updateFluxoRow(${i},'data_vencimento',this.value)"></td>
+                <td><input type="text"   value="${f.descricao || ''}"       placeholder="Ato, Anual..." onchange="window.updateFluxoRow(${i},'descricao',this.value)"></td>
+                <td><input type="number" value="${f.valor || 0}"            step="0.01" style="text-align:right" onchange="window.updateFluxoRow(${i},'valor',this.value)"></td>
+                <td style="font-size:0.75rem; font-weight:600; color:var(--bege-dk); text-align:right; padding-right:0.5rem;">${pct}%</td>
+                <td><button class="btn btn-danger" onclick="window.deleteFluxoRow(${i})"><i class="ti ti-trash"></i></button></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="fin-total-row">
+          <span class="fin-total-label">Total Previsto</span>
+          <span class="fin-total-val" id="fin-total-val">${fmtBRL(totalAtual)}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="editor-footer">
+      <button class="btn btn-sec" onclick="carregarDados()">Cancelar</button>
+      <button class="btn btn-gold" id="btnSalvar" onclick="window.salvarUnidadeData('${u.id_unidade}')">
+        <i class="ti ti-device-floppy"></i> Salvar na Planilha
+      </button>
+    </div>
+  `;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  HANDLERS DA GAVETA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+window.updateStatusLocal = function(val) {
+  const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
+  if (!u) return;
+  u.status_espelho = val;
+  // Auto-avançar fase da esteira ao mudar status
+  if (val === "PROCESSO")          u.fase_esteira = Math.max(u.fase_esteira, 2);
+  if (val === "RESERVA_VENDA")     u.fase_esteira = Math.max(u.fase_esteira, 3);
+  if (val === "CONTRATO_ENVIADO")  u.fase_esteira = Math.max(u.fase_esteira, 4);
+  if (val === "CV_ASSINADO")       u.fase_esteira = Math.max(u.fase_esteira, 5);
+  renderKPIs();
+  renderEspelho();
+  renderGaveta(selectedUnitId);
+};
+
+window.updateClienteLocal = function(val) {
+  const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
+  if (u) { u.cliente_nome = val; renderEspelho(); }
+};
+
+window.updateObservacoesLocal = function(val) {
+  const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
+  if (u) u.observacoes = val;
+};
+
+window.setFaseLocal = function(fase) {
+  const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
+  if (u) { u.fase_esteira = fase; renderGaveta(selectedUnitId); renderEspelho(); }
+};
+
+window.updateFluxoRow = function(index, field, value) {
+  const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
+  if (!u) return;
+  u.fluxo_financeiro[index][field] = value;
+  renderKPIs();
+  if (field === 'valor') {
+    const total = u.fluxo_financeiro.reduce((s, f) => s + (parseFloat(f.valor) || 0), 0);
+    const el = document.getElementById('fin-total-val');
+    if (el) el.textContent = fmtBRL(total);
+  }
+};
+
+window.addLinhaFluxo = function() {
+  const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
+  if (!u) return;
+  const now = new Date();
+  const mes = String(now.getMonth() + 1).padStart(2, '0');
+  u.fluxo_financeiro.push({ data_vencimento: `${mes}/${now.getFullYear()}`, descricao: "", valor: 0 });
+  renderGaveta(selectedUnitId);
+};
+
+window.deleteFluxoRow = function(index) {
+  const u = units.find(x => String(x.id_unidade) === String(selectedUnitId));
+  if (!u) return;
+  u.fluxo_financeiro.splice(index, 1);
+  renderGaveta(selectedUnitId);
+  renderKPIs();
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  SALVAR NO GOOGLE SHEETS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+window.salvarUnidadeData = async function(id) {
+  const btn = document.getElementById("btnSalvar");
+  btn.disabled = true;
+  btn.innerHTML = `<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Enviando...`;
+
+  const u = units.find(x => String(x.id_unidade) === String(id));
+  const fluxoFormatado = (u.fluxo_financeiro || []).map(f => ({
+    id_fluxo:       "FLX-" + Math.floor(Math.random() * 100000),
+    id_unidade:     String(u.id_unidade).trim(),
+    data_vencimento: f.data_vencimento,
+    descricao:      f.descricao,
+    valor:          f.valor,
+    v_total:        f.valor
+  }));
+
+  const payload = {
+    action:          "updateUnit",
+    id_unidade:      String(u.id_unidade),
+    status_espelho:  u.status_espelho,
+    cliente_nome:    u.cliente_nome,
+    observacoes:     u.observacoes || "",
+    fase_esteira:    String(u.fase_esteira),
+    fluxo_financeiro: fluxoFormatado
   };
 
-  window.onload = () => {
+  setSyncStatus('loading', 'Enviando dados...');
+
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method:  "POST",
+      mode:    "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify(payload)
+    });
+    showToast(`Unidade ${id} enviada com sucesso!`, 'success');
+    setTimeout(() => carregarDados(), 1500);
+  } catch (error) {
+    console.error(error);
+    showToast("Erro ao conectar com a planilha. Verifique a URL.", 'error');
+    setSyncStatus('offline', 'Erro de conexão');
+    btn.disabled = false;
+    btn.innerHTML = `<i class="ti ti-device-floppy"></i> Salvar na Planilha`;
+  }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  CARREGAR DADOS DO GOOGLE SHEETS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setSyncStatus(state, text) {
+  const dot  = document.getElementById("syncDot");
+  const span = document.getElementById("syncText");
+  dot.className  = "sync-dot" + (state === 'online' ? ' online' : state === 'loading' ? ' loading' : '');
+  span.textContent = text;
+}
+
+async function carregarDados() {
+  setSyncStatus('loading', 'Sincronizando...');
+
+  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SUA_NOVA_URL")) {
     units = buildRealJesuinoTree();
+    renderEspelho(); renderKPIs();
+    setSyncStatus('offline', 'Modo local (sem URL)');
+    return;
+  }
+
+  try {
+    const resp   = await fetch(GOOGLE_SCRIPT_URL);
+    const result = await resp.json();
+    const tree   = buildRealJesuinoTree();
+
+    if (result && result.status === "success" && Array.isArray(result.data)) {
+      result.data.forEach(c => {
+        const u = tree.find(x => String(x.id_unidade) === String(c.id_unidade));
+        if (!u) return;
+        u.status_espelho = c.status_espelho || "DISPONIVEL";
+        u.cliente_nome   = c.cliente_nome   || "";
+        u.observacoes    = c.observacoes    || "";
+        u.fase_esteira   = parseInt(c.fase_esteira) || 1;
+        const fluxoBruto = c.fluxo_financeiro || c.fluxo || [];
+        u.fluxo_financeiro = Array.isArray(fluxoBruto)
+          ? fluxoBruto.map(f => ({
+              data_vencimento: tratarFormatoData(f.data_vencimento || f.mes_ano),
+              descricao:       f.descricao || f.condicao || "",
+              valor:           parseFloat(f.valor) || 0
+            }))
+          : [];
+      });
+      setSyncStatus('online', 'Dados atualizados');
+      showToast('Dados sincronizados com a planilha.', 'success', 2500);
+    } else {
+      setSyncStatus('offline', 'Resposta inesperada');
+    }
+
+    units = tree;
     renderEspelho();
     renderKPIs();
-    carregarDados();
-  };
+    renderFinanceiro();
+    if (selectedUnitId) renderGaveta(selectedUnitId);
+
+  } catch (err) {
+    console.error(err);
+    units = buildRealJesuinoTree();
+    renderEspelho(); renderKPIs();
+    setSyncStatus('offline', 'Sem conexão — modo local');
+    showToast('Não foi possível conectar à planilha. Rodando em modo local.', 'error');
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  ABA FINANCEIRO — TABELA COMPILADA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toggleVisibilidadeUnidades() {
+  esconderUnidades = !esconderUnidades;
+  const btn = document.getElementById("btnToggleUnidades");
+  btn.innerHTML = esconderUnidades
+    ? `<i class="ti ti-eye"></i> Mostrar Unidades`
+    : `<i class="ti ti-eye-off"></i> Esconder Unidades`;
+  renderFinanceiro();
+}
+
+function renderFinanceiro() {
+  const chkAss  = document.getElementById("chkAssinado")?.checked;
+  const chkCont = document.getElementById("chkContrato")?.checked;
+  const chkRes  = document.getElementById("chkReserva")?.checked;
+  const chkProc = document.getElementById("chkProcesso")?.checked;
+  const chkProp = document.getElementById("chkProposta")?.checked;
+  if (chkAss === undefined) return; // aba ainda não montada
+
+  const filtradas = units.filter(u => {
+    if (u.status_espelho === "CV_ASSINADO"       && chkAss)  return true;
+    if (u.status_espelho === "CONTRATO_ENVIADO"  && chkCont) return true;
+    if (u.status_espelho === "RESERVA_VENDA"     && chkRes)  return true;
+    if (u.status_espelho === "PROCESSO"          && chkProc) return true;
+    if (u.status_espelho === "PROPOSTA"          && chkProp) return true;
+    return false;
+  });
+
+  // Coletar e ordenar meses
+  const mesesSet = new Set();
+  filtradas.forEach(u => u.fluxo_financeiro.forEach(f => { if (f.data_vencimento) mesesSet.add(f.data_vencimento); }));
+  const meses = [...mesesSet].sort((a, b) => {
+    const pa = a.split("/"), pb = b.split("/");
+    if (pa.length === 2 && pb.length === 2) return new Date(pa[1], pa[0]-1) - new Date(pb[1], pb[0]-1);
+    return 0;
+  });
+
+  const tabela = document.getElementById("tabelaFluxoCompilado");
+  const dispCls = esconderUnidades ? 'class="hide-unit-col"' : '';
+
+  // Header
+  let headHTML = `<tr>
+    <th style="min-width:100px; position:sticky; left:0; background:var(--surface2);">Mês/Ano</th>`;
+  filtradas.forEach(u => {
+    headHTML += `<th ${dispCls} style="text-align:right; min-width:120px;">
+      Ap ${u.id_unidade}<br>
+      <span style="color:var(--text-muted); font-weight:400; font-size:0.65rem;">${u.cliente_nome || 'S/N'}</span>
+    </th>`;
+  });
+  headHTML += `<th style="text-align:right; color:var(--bege-dk); min-width:120px;">Total Mês</th>
+    <th style="text-align:right; color:#22C55E; min-width:120px;">Acumulado</th></tr>`;
+
+  // Body
+  let acum = 0;
+  let bodyHTML = "";
+
+  if (meses.length === 0) {
+    bodyHTML = `<tr><td colspan="100%" style="text-align:center; padding:3rem; color:var(--text-muted);">
+      Nenhum fluxo financeiro para os status selecionados.
+    </td></tr>`;
+  } else {
+    meses.forEach(mes => {
+      let totalMes = 0;
+      let row = `<tr>
+        <td style="font-weight:600; color:var(--text); position:sticky; left:0; background:var(--surface);">${mes}</td>`;
+      filtradas.forEach(u => {
+        const soma = u.fluxo_financeiro
+          .filter(f => f.data_vencimento === mes)
+          .reduce((s, f) => s + (parseFloat(f.valor) || 0), 0);
+        totalMes += soma;
+        row += soma > 0
+          ? `<td ${dispCls} style="text-align:right; color:var(--text);">${fmtNum(soma)}</td>`
+          : `<td ${dispCls} style="text-align:right; color:var(--text-muted); opacity:0.3;">—</td>`;
+      });
+      acum += totalMes;
+      row += `<td style="text-align:right; font-weight:600; color:var(--bege-dk);">${fmtBRL(totalMes)}</td>`;
+      row += `<td style="text-align:right; font-weight:600; color:#22C55E;">${fmtBRL(acum)}</td></tr>`;
+      bodyHTML += row;
+    });
+
+    // Linha de totais por unidade
+    let totalRow = `<tr style="border-top:1px solid var(--border2);">
+      <td style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:600; position:sticky; left:0; background:var(--surface2);">Total Unidade</td>`;
+    filtradas.forEach(u => {
+      const tot = u.fluxo_financeiro.reduce((s, f) => s + (parseFloat(f.valor) || 0), 0);
+      totalRow += `<td ${dispCls} style="text-align:right; font-weight:600; color:var(--bege-dk); background:rgba(199,178,153,0.06);">${fmtBRL(tot)}</td>`;
+    });
+    totalRow += `<td style="text-align:right; font-weight:700; color:var(--bege-dk); font-size:0.9rem;">${fmtBRL(acum)}</td>`;
+    totalRow += `<td></td></tr>`;
+    bodyHTML += totalRow;
+  }
+
+  tabela.querySelector('thead').innerHTML = headHTML;
+  tabela.querySelector('tbody').innerHTML = bodyHTML;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  EXPORTS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function exportarFluxoExcel() {
+  const orig = document.getElementById("tabelaFluxoCompilado");
+  const clone = orig.cloneNode(true);
+  clone.querySelectorAll('.hide-unit-col').forEach(el => el.classList.remove('hide-unit-col'));
+  const wb = XLSX.utils.table_to_book(clone, { sheet: "Fluxo Mensal" });
+  XLSX.writeFile(wb, `Fluxo_Financeiro_Quaddra_Jesuino.xlsx`);
+  showToast('Excel exportado com sucesso!', 'success');
+}
+
+function exportarEspelhoImagem() {
+  const area = document.getElementById("captureArea");
+  showToast('Gerando imagem...', 'info', 2000);
+  html2canvas(area, { backgroundColor: "#FFFFFF", logging: false, scale: 2 }).then(canvas => {
+    const a = document.createElement('a');
+    a.download = `Espelho_Quaddra_Jesuino.png`;
+    a.href = canvas.toDataURL();
+    a.click();
+    showToast('Imagem salva!', 'success');
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  SPIN ANIMATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const styleEl = document.createElement('style');
+styleEl.textContent = `@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`;
+document.head.appendChild(styleEl);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  INICIALIZAÇÃO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+window.onload = function() {
+  renderLegenda();
+  units = buildRealJesuinoTree();
+  renderEspelho();
+  renderKPIs();
+  carregarDados();
+};
 </script>
 </body>
 </html>
