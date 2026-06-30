@@ -115,18 +115,35 @@ header {
 
 /* ── ESPELHO ── */
 .espelho-container { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; }
-.espelho-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; }
-.espelho-top-left { display: flex; flex-direction: column; gap: 0.25rem; }
+.espelho-top { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1rem; gap: 1rem; }
+.espelho-cap-header { margin-bottom: 1rem; }
 .espelho-title { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; color: var(--bege-dk); text-transform: uppercase; }
 
-/* Legenda */
-.legenda { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
-.legenda-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: var(--text-muted); }
-.legenda-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-
-.grid-predio { display: flex; flex-direction: column-reverse; gap: 0.4rem; max-width: 520px; margin: 0 auto; padding: 0.5rem; }
+.espelho-cap-body { display: flex; gap: 2rem; align-items: stretch; }
+.grid-predio { display: flex; flex-direction: column-reverse; gap: 0.4rem; max-width: 520px; flex: 0 0 520px; padding: 0.5rem; }
 .andar-row { display: flex; gap: 0.4rem; align-items: center; }
 .label-andar { width: 36px; font-size: 0.7rem; color: var(--text-muted); text-align: right; flex-shrink: 0; }
+
+/* Sidebar lateral: preenche o vão à direita do espelho, conteúdo centralizado verticalmente */
+.espelho-sidebar { flex: 1; min-width: 200px; display: flex; flex-direction: column; justify-content: center; gap: 1.75rem; }
+
+/* Legenda — vertical, discreta, alinhada ao lado direito */
+.legenda { display: flex; flex-direction: column; gap: 0.45rem; }
+.legenda-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; color: var(--text-muted); }
+.legenda-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* Resumo — sutil, tabela com Qtd / % / VGV por status */
+.resumo-espelho { border-top: 1px solid var(--border); padding-top: 1rem; }
+.resumo-titulo { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.6rem; }
+.resumo-row { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 0.4rem 0.7rem; padding: 0.3rem 0; font-size: 0.74rem; }
+.resumo-row-head { color: var(--text-muted); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; margin-bottom: 0.15rem; }
+.resumo-label { display: flex; align-items: center; gap: 0.4rem; color: var(--text); white-space: nowrap; }
+.resumo-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+.resumo-qtd, .resumo-pct, .resumo-vgv { text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.resumo-qtd { color: var(--text); font-weight: 600; }
+.resumo-vgv { min-width: 78px; }
+.resumo-total-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 0.4rem 0.7rem; padding-top: 0.5rem; margin-top: 0.4rem; border-top: 1px solid var(--border2); font-size: 0.76rem; font-weight: 700; color: var(--bege-dk); }
+.resumo-total-row span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
 
 .unit-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); padding: 0.65rem 0.75rem; border-radius: 4px; cursor: pointer; transition: border-color 0.15s, transform 0.15s; position: relative; min-width: 0; }
 .unit-box:hover { border-color: var(--azul); transform: translateY(-1px); }
@@ -284,6 +301,10 @@ textarea { resize: vertical; min-height: 65px; }
 .rel-vgv { text-align: right; font-weight: 500; color: var(--bege-dk); white-space: nowrap; min-width: 110px; }
 .rel-obs { font-size: 0.75rem; color: var(--text-muted); max-width: 160px; line-height: 1.4; }
 
+/* Mascaramento de clientes */
+.cliente-mask { color: var(--text-muted); letter-spacing: 0.15em; font-size: 0.75rem; }
+.btn-ocultar-cli.ativo { background: var(--azul); color: #fff; border-color: var(--azul); }
+
 .rel-footer {
   padding: 0.65rem 1rem;
   border-top: 1px solid var(--border);
@@ -367,16 +388,27 @@ textarea { resize: vertical; min-height: 65px; }
     <!-- Espelho -->
     <div class="espelho-container">
       <div class="espelho-top">
-        <div class="espelho-top-left">
-          <div class="espelho-title">Espelho de Pavimentos</div>
-          <div class="legenda" id="legenda-status"></div>
+        <div></div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-sec btn-sm btn-ocultar-cli" id="btnOcultarCliEspelho" onclick="toggleClientesOcultos()" title="Ocultar nomes de clientes">
+            <i class="ti ti-eye-off"></i> Ocultar Clientes
+          </button>
+          <button class="btn btn-sec btn-sm" onclick="exportarEspelhoImagem()">
+            <i class="ti ti-camera"></i> Imagem
+          </button>
         </div>
-        <button class="btn btn-sec btn-sm" onclick="exportarEspelhoImagem()">
-          <i class="ti ti-camera"></i> Imagem
-        </button>
       </div>
       <div id="captureArea">
-        <div class="grid-predio" id="predioContainer"></div>
+        <div class="espelho-cap-header">
+          <div class="espelho-title">Espelho de Pavimentos</div>
+        </div>
+        <div class="espelho-cap-body">
+          <div class="grid-predio" id="predioContainer"></div>
+          <div class="espelho-sidebar">
+            <div class="legenda" id="legenda-status"></div>
+            <div class="resumo-espelho" id="resumoEspelho"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -406,6 +438,9 @@ textarea { resize: vertical; min-height: 65px; }
         </div>
       </div>
       <div class="action-group">
+        <button class="btn btn-sec btn-sm btn-ocultar-cli" id="btnOcultarCliFin" onclick="toggleClientesOcultos()">
+          <i class="ti ti-eye-off"></i> Ocultar Clientes
+        </button>
         <button class="btn btn-sec btn-sm" id="btnToggleUnidades" onclick="toggleVisibilidadeUnidades()">
           <i class="ti ti-eye-off"></i> Esconder Unidades
         </button>
@@ -470,6 +505,7 @@ const FASES = [
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 let units = [];
 let selectedUnitId = null;
+let clientesOcultos = false;
 let esconderUnidades = false;
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -650,7 +686,7 @@ function renderRelatorioFiltro() {
           <span class="rel-tipo">${u.tipo} · ${u.metragem}m²</span>
           ${subStatus}
         </td>
-        <td class="rel-td rel-cliente">${u.cliente_nome || '<span style="color:var(--text-muted);font-style:italic">S/N</span>'}</td>
+        <td class="rel-td rel-cliente">${maskCliente(u.cliente_nome)}</td>
         <td class="rel-td rel-vgv">${vgv > 0 ? fmtBRL(vgv) : '<span style="color:var(--text-muted)">—</span>'}</td>
         <td class="rel-td rel-obs">${obs ? `<span title="${obs}">${obs.length > 50 ? obs.slice(0,48)+'…' : obs}</span>` : '<span style="color:var(--text-muted)">—</span>'}</td>
       </tr>`;
@@ -803,6 +839,67 @@ function renderKPIs() {
   document.getElementById("countReserva").textContent  = `${cRes} un`;
   document.getElementById("countProposta").textContent = `${cProp} un`;
   document.getElementById("countSuspensa").textContent = `${cSusp} un suspensas`;
+
+  renderResumoEspelho();
+}
+
+function renderResumoEspelho() {
+  const el = document.getElementById('resumoEspelho');
+  if (!el) return;
+
+  const ordem = ["DISPONIVEL","PROPOSTA","PROCESSO","RESERVA_VENDA","CONTRATO_ENVIADO","CV_ASSINADO","SUSPENSA"];
+  const dados = Object.fromEntries(ordem.map(k => [k, { qtd: 0, vgv: 0 }]));
+
+  units.forEach(u => {
+    if (!dados[u.status_espelho]) return;
+    dados[u.status_espelho].qtd++;
+    dados[u.status_espelho].vgv += u.fluxo_financeiro.reduce((s, f) => s + (parseFloat(f.valor) || 0), 0);
+  });
+
+  const totalQtd = units.length;
+  const totalVgv = Object.values(dados).reduce((s, d) => s + d.vgv, 0);
+  const fmtCompact = v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`;
+
+  const linhas = ordem.map(k => {
+    const cfg = STATUS_CONFIG[k];
+    const d = dados[k];
+    const pct = totalQtd ? Math.round((d.qtd / totalQtd) * 100) : 0;
+    return `
+      <div class="resumo-row">
+        <div class="resumo-label"><div class="resumo-dot" style="background:${cfg.color};"></div>${cfg.label}</div>
+        <div class="resumo-qtd">${d.qtd}</div>
+        <div class="resumo-pct">${pct}%</div>
+        <div class="resumo-vgv">${fmtCompact(d.vgv)}</div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="resumo-titulo">Resumo da Torre</div>
+    <div class="resumo-row resumo-row-head"><span>Status</span><span>Qtd</span><span>%</span><span>VGV</span></div>
+    ${linhas}
+    <div class="resumo-total-row"><span>Total</span><span>${totalQtd}</span><span>100%</span><span>${fmtCompact(totalVgv)}</span></div>
+  `;
+}
+
+function maskCliente(nome) {
+  if (!clientesOcultos) return nome || '<span style="color:var(--text-muted);font-style:italic">S/N</span>';
+  if (!nome) return '<span class="cliente-mask">••••••</span>';
+  const partes = nome.trim().split(' ');
+  return `<span class="cliente-mask">${partes[0][0] || '•'}••••• ${partes.length > 1 ? partes[partes.length-1][0]+'.' : ''}</span>`;
+}
+
+function toggleClientesOcultos() {
+  clientesOcultos = !clientesOcultos;
+  document.querySelectorAll('.btn-ocultar-cli').forEach(btn => {
+    btn.classList.toggle('ativo', clientesOcultos);
+    btn.innerHTML = clientesOcultos
+      ? '<i class="ti ti-eye"></i> Mostrar Clientes'
+      : '<i class="ti ti-eye-off"></i> Ocultar Clientes';
+  });
+  // Rerenderiza tudo que exibe o nome
+  renderRelatorioFiltro();
+  renderFinanceiro();
+  if (selectedUnitId) renderGaveta(selectedUnitId);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1149,7 +1246,7 @@ function renderFinanceiro() {
   filtradas.forEach(u => {
     headHTML += `<th ${dispCls} style="text-align:right; min-width:120px;">
       Ap ${u.id_unidade}<br>
-      <span style="color:var(--text-muted); font-weight:400; font-size:0.65rem;">${u.cliente_nome || 'S/N'}</span>
+      <span style="font-weight:400; font-size:0.65rem;">${maskCliente(u.cliente_nome)}</span>
     </th>`;
   });
   headHTML += `<th style="text-align:right; color:var(--bege-dk); min-width:120px;">Total Mês</th>
