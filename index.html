@@ -136,15 +136,34 @@ header {
 .unit-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
 .unit-meta { font-size: 0.68rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 0.15rem; align-items: center; }
 .unit-fase-badge { font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; background: rgba(199,178,153,0.18); color: var(--bege-dk); font-weight: 600; flex-shrink: 0; }
+.unit-status-label { font-size: 0.68rem; margin-top: 0.2rem; font-weight: 500; color: var(--text-muted); }
 
-/* Status border-left */
-.u-disponivel       { border-left: 3px solid var(--st-disponivel); }
-.u-proposta         { border-left: 3px solid var(--st-proposta);         background: rgba(134,239,172,0.03); }
-.u-processo         { border-left: 3px solid var(--st-processo);         background: rgba(34,197,94,0.03); }
-.u-reserva_venda    { border-left: 3px solid var(--st-reserva_venda);    background: rgba(245,158,11,0.03); }
-.u-contrato_enviado { border-left: 3px solid var(--st-contrato_enviado); background: rgba(59,130,246,0.04); }
-.u-cv_assinado      { border-left: 3px solid var(--st-cv_assinado);      background: rgba(21,128,61,0.05); }
-.u-suspensa         { border-left: 3px solid var(--st-suspensa); opacity: 0.45; }
+/* Status — caixa inteira preenchida (mais destaque que uma faixinha lateral) */
+.u-disponivel       { background: var(--surface2); }
+.u-proposta         { background: var(--st-proposta); }
+.u-processo         { background: var(--st-processo); }
+.u-reserva_venda    { background: var(--st-reserva_venda); }
+.u-contrato_enviado { background: var(--st-contrato_enviado); }
+.u-cv_assinado      { background: var(--st-cv_assinado); }
+.u-suspensa         { background: var(--st-suspensa); opacity: 0.5; }
+
+/* Texto em contraste sobre o preenchimento de cada status */
+.u-proposta .unit-name, .u-proposta .unit-meta, .u-proposta .unit-status-label,
+.u-processo .unit-name, .u-processo .unit-meta, .u-processo .unit-status-label,
+.u-reserva_venda .unit-name, .u-reserva_venda .unit-meta, .u-reserva_venda .unit-status-label,
+.u-contrato_enviado .unit-name, .u-contrato_enviado .unit-meta, .u-contrato_enviado .unit-status-label {
+  color: var(--carvao);
+}
+.u-cv_assinado .unit-name, .u-cv_assinado .unit-meta, .u-cv_assinado .unit-status-label,
+.u-suspensa .unit-name, .u-suspensa .unit-meta, .u-suspensa .unit-status-label {
+  color: #FFFFFF;
+}
+.u-proposta .unit-fase-badge, .u-processo .unit-fase-badge, .u-reserva_venda .unit-fase-badge, .u-contrato_enviado .unit-fase-badge {
+  background: rgba(20,20,20,0.14); color: var(--carvao);
+}
+.u-cv_assinado .unit-fase-badge, .u-suspensa .unit-fase-badge {
+  background: rgba(255,255,255,0.25); color: #FFFFFF;
+}
 
 /* ── GAVETA (PAINEL DIREITO) ── */
 .painel-vazio { padding: 3rem 2rem; text-align: center; color: var(--text-muted); margin: auto; }
@@ -746,7 +765,7 @@ function createUnitDom(u) {
       <span>${u.metragem}m² · ${u.tipo}</span>
       ${mostrarFase ? `<span class="unit-fase-badge">F${fase}</span>` : ''}
     </div>
-    <div style="font-size:0.68rem; margin-top:0.2rem; color:${getStatusColor(u.status_espelho)}; font-weight:500;">
+    <div class="unit-status-label">
       ${(STATUS_CONFIG[u.status_espelho] || {}).label || u.status_espelho}
     </div>
   `;
